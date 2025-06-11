@@ -51,8 +51,10 @@ async function getTable(tableName) {
   return tableCache[tableName];
 }
 
-function rollD100() {
-  return Math.floor(Math.random() * 100) + 1;
+function rollTableKey(table) {
+  const keys = Object.keys(table);
+  const index = Math.floor(Math.random() * keys.length);
+  return keys[index];
 }
 
 async function renderTemplate(template) {
@@ -61,7 +63,7 @@ async function renderTemplate(template) {
   for (let v of vars) {
     const tableName = v.slice(1, -1);
     const table = await getTable(tableName);
-    const result = table[rollD100()] || `[Missing entry for ${tableName}]`;
+    const result = table[rollTableKey(table)] || `[Missing entry for ${tableName}]`;
     rolls[tableName] = result;
   }
   let rendered = template;
@@ -87,7 +89,7 @@ async function rollTable() {
   const table = await getTable(tableName);
   const results = [];
   for (let i = 0; i < count; i++) {
-    results.push(table[rollD100()] || `[Missing entry for ${tableName}]`);
+    results.push(table[rollTableKey(table)] || `[Missing entry for ${tableName}]`);
   }
   tableOutput.textContent = results.join('\n');
 }
