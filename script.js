@@ -13,7 +13,9 @@ let tableNames = [];
 
 async function loadTables() {
   const res = await fetch('./tables/index.json');
-  tableNames = await res.json();
+  const tableNames = await res.json();
+
+  console.log(tableNames);
 
   for (let name of tableNames) {
     let option = document.createElement('option');
