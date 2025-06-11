@@ -25,7 +25,7 @@ async function loadTables() {
 }
 
 async function loadTemplates() {
-  const res = await fetch('./templates/templates.json');
+  const res = await fetch('./templates.json');
   const templates = await res.json();
   templates.forEach(t => {
     let opt = document.createElement('option');
