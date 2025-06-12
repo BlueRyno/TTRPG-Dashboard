@@ -6,6 +6,8 @@ const sentenceCount = document.getElementById('sentenceCount');
 const tableOutput = document.getElementById('tableOutput');
 const tableCountInput = document.getElementById('tableCount');
 const tableNameSelect = document.getElementById('tableNames');
+const generateBtn = document.getElementById('generateBtn');
+const rollBtn = document.getElementById('rollBtn');
 
 
 
@@ -132,41 +134,106 @@ async function rollTable() {
 
 
 
+// Add SVG particle effect on hover
+function createFloatingParticles(button) {
+  const particleContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  particleContainer.setAttribute('class', 'particles');
+  particleContainer.style.position = 'absolute';
+  particleContainer.style.pointerEvents = 'none';
+  particleContainer.style.width = `${button.offsetWidth + 20}px`;
+  particleContainer.style.height = `${button.offsetHeight + 20}px`;
+  particleContainer.style.left = `${button.getBoundingClientRect().left + window.scrollX - 10}px`;
+  particleContainer.style.top = `${button.getBoundingClientRect().top + window.scrollY - 10}px`;
+  particleContainer.style.zIndex = 0;
+  particleContainer.style.opacity = 0.33;
+
+  document.body.appendChild(particleContainer);
+
+  const particles = [];
+  const w = particleContainer.clientWidth;
+  const h = particleContainer.clientHeight;
+
+  for (let i = 0; i < 14; i++) {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', 1.5 + Math.random() * 1.5);
+    circle.setAttribute('fill', '#ccee50');
+    particleContainer.appendChild(circle);
+
+    particles.push({
+      el: circle,
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      life: 0
+    });
+  }
+
+
+  let frameId;
+  function animate() {
+    for (const p of particles) {
+      p.x += p.vx * 0.25;
+      p.y += p.vy * 0.25;
+
+      // Keep within bounds
+      if (p.x < 0 || p.x > w) p.vx *= -1;
+      if (p.y < 0 || p.y > h) p.vy *= -1;
+
+      // Randomly change direction over time
+      if (Math.random() < 0.02) {
+        p.vx += (Math.random() - 0.5) * 0.3;
+        p.vy += (Math.random() - 0.5) * 0.3;
+        // Clamp velocity
+        p.vx = Math.max(-0.7, Math.min(0.7, p.vx));
+        p.vy = Math.max(-0.7, Math.min(0.7, p.vy));
+      }
+
+      p.el.setAttribute('cx', p.x);
+      p.el.setAttribute('cy', p.y);
+    }
+    frameId = requestAnimationFrame(animate);
+  }
+
+  animate();
+
+  return () => {
+    cancelAnimationFrame(frameId);
+    particleContainer.remove();
+  };
+}
+
+
+function addHoverParticles(button) {
+  let cleanup;
+  button.addEventListener('mouseenter', () => {
+    cleanup = createFloatingParticles(button);
+  });
+  button.addEventListener('mouseleave', () => {
+    if (cleanup) cleanup();
+  });
+}
+
+
+
+
 //when a sentence template is changed,
 //overwrite the contents of the textarea.
 templateSelect.addEventListener('change', () => {
   templateEditor.value = templateSelect.value;
 });
 
+document.querySelectorAll('button').forEach(addHoverParticles);
 
-
-// Autocomplete for template editor
-templateEditor.addEventListener('input', () => {
-  const pos = templateEditor.selectionStart;
-  const text = templateEditor.value;
-  const match = /\{([a-zA-Z0-9_]*)$/.exec(text.slice(0, pos));
-  if (match) {
-    const partial = match[1];
-    const suggestions = tableNames.filter(t => t.startsWith(partial));
-    if (suggestions.length) {
-      const suggestion = suggestions[0];
-      const before = text.slice(0, pos - partial.length);
-      const after = text.slice(pos);
-      templateEditor.value = before + suggestion + after;
-      templateEditor.selectionStart = templateEditor.selectionEnd = before.length + suggestion.length;
-    }
-  }
-});
+generateBtn.addEventListener('click', generateSentences);
+rollBtn.addEventListener('click', rollTable);
 
 
 
+//functions to run on load
 loadTables();
 loadTemplates();
-
-
-
-document.getElementById('generateBtn')
-        .addEventListener('click', generateSentences);
-
-document.getElementById('rollBtn')
-        .addEventListener('click', rollTable);

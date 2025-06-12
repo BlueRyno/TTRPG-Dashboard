@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,94 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
-  <style>
-    body {
-      margin: 0;
-      padding: 2rem;
-      background: #1a1a1a;
-      color: #e0e0e0;
-      font-family: 'Montserrat', sans-serif;
-      line-height: 1.6;
-    }
-    h1, h2 {
-      font-family: 'MedievalSharp', cursive;
-      color: #f0e6d2;
-    }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
-    }
-    h2 {
-      font-size: 1.8rem;
-      margin-top: 2rem;
-    }
-    .section {
-      margin-bottom: 2rem;
-    }
-    select, textarea, input[type="number"], input[list] {
-      width: 100%;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      background: #333;
-      border: 1px solid #444;
-      color: #eee;
-      border-radius: 4px;
-      font-family: inherit;
-    }
-    button {
-      background: #5a5;
-      color: #111;
-      padding: 0.6rem 1.2rem;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 0 0 transparent;
-    }
-    button:hover,
-    button:focus {
-      transform: scale(1.03);
-      background: #6b6;
-      box-shadow: 0 0 10px rgba(120, 255, 120, 0.2);
-    }
-    select:focus,
-    textarea:focus,
-    input:focus {
-      outline: none;
-      border-color: #6b6;
-      box-shadow: 0 0 6px rgba(100, 255, 100, 0.3);
-      transition: all 0.2s ease;
-    }
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(0.25em);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    pre {
-      background: #2a2a2a;
-      padding: 1rem;
-      border-radius: 4px;
-      overflow-x: auto;
-      animation: fadeIn 0.3s ease-out;
-    }
-    small {
-      display: block;
-      margin-bottom: 1rem;
-      color: #aaa;
-    }
-    code {
-      background: #444;
-      padding: 0.1rem 0.2rem;
-      border-radius: 3px;
-      font-family: monospace;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -107,14 +19,20 @@
       Generate Sentence
     </h2>
     
-    <select id="templateSelect"></select>
+    <div class="form-row">
+      <div class="form-group-select">
+        <label for="templateSelect">Template</label>
+        <select id="templateSelect"></select>
+      </div>
     
-    <input type="number" id="sentenceCount" value="1" min="1" placeholder="How many sentences?" />
+      <div class="form-group-input">
+        <label for="sentenceCount">Count</label>
+        <input type="number" id="sentenceCount" placeholder="1" min="1">
+      </div>
+    </div>
     
     <textarea id="templateEditor" rows="4" placeholder="Type a template with {table_name}…"></textarea>
 
-    <small>Type <code>{</code> to trigger autocomplete inside braces. Press Tab to accept suggestion.</small>
-    
     <button id="generateBtn">Generate</button>
     
     <pre id="sentenceOutput">Sentence results will appear here.</pre>
@@ -123,9 +41,16 @@
   <div class="section">
     <h2>Roll from Specific Table</h2>
     
-    <select id="tableNames"></select>
-    
-    <input type="number" id="tableCount" value="1" min="1" placeholder="How many results?" />
+    <div class="form-row">
+      <div class="form-group-select">
+        <label for="tableName">Table Name</label>
+        <select id="tableNames"></select>
+      </div>
+      <div class="form-group-input">
+        <label for="tableCount">Count</label>
+        <input type="number" id="tableCount" placeholder="1" min="1">
+      </div>
+    </div>
     
     <button id="rollBtn">Roll Table</button>
     
