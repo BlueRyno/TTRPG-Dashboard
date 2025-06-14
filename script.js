@@ -136,75 +136,35 @@ async function rollTable() {
 
 // Add SVG particle effect on hover
 function createFloatingParticles(button) {
-  const particleContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  particleContainer.setAttribute('class', 'particles');
-  particleContainer.style.position = 'absolute';
-  particleContainer.style.pointerEvents = 'none';
-  particleContainer.style.width = `${button.offsetWidth + 20}px`;
-  particleContainer.style.height = `${button.offsetHeight + 20}px`;
-  particleContainer.style.left = `${button.getBoundingClientRect().left + window.scrollX - 10}px`;
-  particleContainer.style.top = `${button.getBoundingClientRect().top + window.scrollY - 10}px`;
-  particleContainer.style.zIndex = 0;
-  particleContainer.style.opacity = 0.33;
+  for (let i = 0; i < 12; i++) {
+    const particle = document.createElement("div");
+    particle.className = "particle";
 
-  document.body.appendChild(particleContainer);
+    // Random angle and distance
+    const angle = Math.random() * 2 * Math.PI;
+    const distance = 40 + Math.random() * 40;
+    const x = Math.cos(angle) * distance + "px";
+    const y = Math.sin(angle) * distance + "px";
 
-  const particles = [];
-  const w = particleContainer.clientWidth;
-  const h = particleContainer.clientHeight;
+    particle.style.setProperty("--x", x);
+    particle.style.setProperty("--y", y);
+    particle.style.left = `${button.offsetWidth / 2}px`;
+    particle.style.top = `${button.offsetHeight / 2}px`;
+    particle.style.animationDelay = `${Math.random() * 0.5}s`;
+    particle.style.width = `${4 + Math.random() * 6}px`;
+    particle.style.height = particle.style.width;
 
-  for (let i = 0; i < 14; i++) {
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    const x = Math.random() * w;
-    const y = Math.random() * h;
-    circle.setAttribute('cx', x);
-    circle.setAttribute('cy', y);
-    circle.setAttribute('r', 1.5 + Math.random() * 1.5);
-    circle.setAttribute('fill', '#ccee50');
-    particleContainer.appendChild(circle);
+    // Optional: varied soft colors
+    const colors = ["#fff5", "#c0f0ff88", "#ddaaff88", "#ffffff99"];
+    particle.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random() * colors.length)]} 0%, transparent 70%)`;
 
-    particles.push({
-      el: circle,
-      x,
-      y,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-      life: 0
-    });
+    button.appendChild(particle);
+
+    // Clean up after animation
+    setTimeout(() => {
+      particle.remove();
+    }, 3000);
   }
-
-
-  let frameId;
-  function animate() {
-    for (const p of particles) {
-      p.x += p.vx * 0.25;
-      p.y += p.vy * 0.25;
-
-      // Keep within bounds
-      if (p.x < 0 || p.x > w) p.vx *= -1;
-      if (p.y < 0 || p.y > h) p.vy *= -1;
-
-      // Randomly change direction over time
-      if (Math.random() < 0.02) {
-        p.vx += (Math.random() - 0.5) * 0.3;
-        p.vy += (Math.random() - 0.5) * 0.3;
-        // Clamp velocity
-        p.vx = Math.max(-0.7, Math.min(0.7, p.vx));
-        p.vy = Math.max(-0.7, Math.min(0.7, p.vy));
-      }
-
-      p.el.setAttribute('cx', p.x);
-      p.el.setAttribute('cy', p.y);
-    }
-    frameId = requestAnimationFrame(animate);
-  }
-
-  animate();
-
-  return () => {
-    cancelAnimationFrame(frameId);
-    particleContainer.remove();
-  };
 }
 
 

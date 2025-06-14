@@ -125,6 +125,19 @@ pre {
 
 
 
+.firefly {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #fffacd 0%, #ff0 40%, transparent 80%);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(0.8px);
+}
+
+
+
 @media (max-width: 600px) {
   .form-row {
     flex-direction: column;

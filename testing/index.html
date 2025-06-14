@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Magic Frosted Button</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0e1a;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .button-container {
+      position: relative;
+      width: 220px;
+      height: 60px;
+    }
+
+    .firefly-layer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .magic-button {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(15px) saturate(100%);
+      -webkit-backdrop-filter: blur(15px) saturate(100%);
+      color: white;
+      font-size: 1.2em;
+      text-align: center;
+      line-height: 60px;
+      border: 1px solid rgba(188, 255, 100, 0.1);
+      box-shadow:
+        inset 0 0 5px rgba(255, 255, 255, 0.06),
+        0 6px 10px rgba(0, 0, 0, 0.4),
+        0 0 10px rgba(255, 255, 255, 0.03);
+      transition: backdrop-filter 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    /* LEFT side SVG */
+    .magic-button::before,
+    .magic-button::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: auto;
+      height: 65px;
+      aspect-ratio: 1 / 1; /* Approximate if unknown */
+      background-image: url('button_side.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: brightness(0) invert(1); /* make it white */
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* Left */
+    .magic-button::before {
+      left: -36px; /* fine-tune as needed */
+    }
+
+    /* Right (mirrored) */
+    .magic-button::after {
+      right: -36px;
+      transform: translateY(-50%) scaleX(-1);
+    }
+
+    /* Optional: brighten on hover */
+    .magic-button:hover::before,
+    .magic-button:hover::after {
+      opacity: 0.8;
+    }
+
+    .magic-button:hover {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(13px) saturate(160%);
+      -webkit-backdrop-filter: blur(13px) saturate(160%);
+    }
+
+    .firefly {
+      position: absolute;
+      width: 35px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(85, 231, 212) 40%, transparent 100%);
+      opacity: 0;
+      transform: scale(1);
+      transform-origin: center;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="button-container" id="buttonContainer">
+  <div class="firefly-layer" id="fireflyLayer"></div>
+  <div class="magic-button" id="magicButton">
+    Enchant
+  </div>
+</div>
+
+
+
+<script>
+function initFireflies(container, count = 30) {
+  const layer = document.getElementById("fireflyLayer");
+  const width = container.offsetWidth;
+  const height = container.offsetHeight;
+  const fireflies = [];
+
+  for (let i = 0; i < count; i++) {
+    const f = document.createElement("div");
+    f.classList.add("firefly");
+
+    const baseX = Math.random() * (width - 10);
+    const baseY = Math.random() * (height - 10);
+    f.style.left = `${baseX}px`;
+    f.style.top = `${baseY}px`;
+
+    layer.appendChild(f);
+
+    const firefly = {
+      el: f,
+      baseX,
+      baseY,
+      speedMultiplier: 1.25
+    };
+
+    // Fade in and start drifting
+    gsap.to(f, {
+      opacity: 0.6 + Math.random() * 0.3,
+      duration: 2,
+      delay: Math.random() * 2,
+      onComplete: () => drift(firefly)
+    });
+
+    fireflies.push(firefly);
+  }
+
+  /**
+   * Animates individual firefly with organic drifting, constrained to button bounds
+   */
+  function drift(firefly) {
+    const { el, baseX, baseY } = firefly;
+
+    const range = 30;
+    const offsetX = (Math.random() - 0.5) * range;
+    const offsetY = (Math.random() - 0.5) * range;
+
+    // Clamp movement to stay within container
+    const newX = Math.min(width - 5, Math.max(5, baseX + offsetX));
+    const newY = Math.min(height - 5, Math.max(5, baseY + offsetY));
+
+    const duration = (2 + Math.random() * 2) / firefly.speedMultiplier;
+
+    gsap.to(el, {
+      x: newX - baseX,
+      y: newY - baseY,
+      duration,
+      delay: Math.random() * (1 / firefly.speedMultiplier),
+      ease: "sine.inOut",
+      onComplete: () => drift(firefly)
+    });
+  }
+
+  /**
+   * On hover, make all fireflies move faster and glow brighter
+   */
+  const button = document.getElementById("magicButton");
+
+  button.addEventListener("mouseenter", () => {
+    fireflies.forEach(firefly => {
+      firefly.speedMultiplier = 3;
+
+      gsap.to(firefly.el, {
+        opacity: 1,
+        duration: 0.4,
+        ease: "power1.out"
+      });
+    });
+  });
+
+  button.addEventListener("mouseleave", () => {
+    fireflies.forEach(firefly => {
+      firefly.speedMultiplier = 1.25;
+
+      gsap.to(firefly.el, {
+        opacity: 0.6 + Math.random() * 0.3,
+        duration: 0.4,
+        ease: "power1.inOut"
+      });
+    });
+  });
+
+
+
+  /*
+  // Move fireflies away from cursor while hovering
+  button.addEventListener("mousemove", (e) => {
+    const rect = button.getBoundingClientRect();
+    const cursorX = e.clientX - rect.left;
+    const cursorY = e.clientY - rect.top;
+
+    const width = container.offsetWidth;
+    const height = container.offsetHeight;
+    const radius = 14; // matches border-radius of the button
+
+    fireflies.forEach((firefly) => {
+      const { el, baseX, baseY } = firefly;
+
+      // Get current GSAP offset positions
+      const currentX = baseX + gsap.getProperty(el, "x");
+      const currentY = baseY + gsap.getProperty(el, "y");
+
+      // Vector away from cursor
+      const dx = currentX - cursorX;
+      const dy = currentY - cursorY;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      const intensity = 10;
+      const moveX = (dx / dist) * intensity;
+      const moveY = (dy / dist) * intensity;
+
+      let targetX = gsap.getProperty(el, "x") + moveX;
+      let targetY = gsap.getProperty(el, "y") + moveY;
+
+      // Clamp to rect bounds (inner padding so fireflies stay away from edges)
+      const minX = -baseX + 35 / 2;
+      const maxX = width - baseX - 35 / 2;
+      const minY = -baseY + 10 / 2;
+      const maxY = height - baseY - 10 / 2;
+
+      targetX = Math.max(minX, Math.min(targetX, maxX));
+      targetY = Math.max(minY, Math.min(targetY, maxY));
+
+      // OPTIONAL: add circular avoidance around corners
+      const nearCorner = (
+        (targetX < radius && targetY < radius) || // top-left
+        (targetX > width - baseX - radius && targetY < radius) || // top-right
+        (targetX < radius && targetY > height - baseY - radius) || // bottom-left
+        (targetX > width - baseX - radius && targetY > height - baseY - radius) // bottom-right
+      );
+      if (nearCorner) return; // skip this move if near a corner
+
+      // Pause current drift
+      gsap.killTweensOf(el);
+
+      // Animate gently away from cursor
+      gsap.to(el, {
+        x: targetX,
+        y: targetY,
+        duration: 0.5,
+        ease: "sine.out",
+        onComplete: () => {
+          // Delay before letting the drift resume
+          setTimeout(() => {
+            drift(firefly); // restart natural motion
+          }, 500 + Math.random() * 500);
+        }
+      });
+    });
+  });
+  */
+
+
+
+  button.addEventListener('click', () => {
+    const firefliesArr = document.querySelectorAll('.firefly');
+
+    gsap.to(firefliesArr, {
+      duration: 0.5,
+      opacity: 1,
+      scale: 3,
+      filter: "brightness(2.5)",
+      ease: "bounce",
+      onComplete: () => {
+        gsap.to(firefliesArr, {
+          duration: 0.25,
+          opacity: 0.6 + Math.random() * 0.3,
+          scale: 1,
+          filter: "brightness(1)",
+          transformOrigin: "center",
+          ease: "elastic.in"
+        });
+      }
+    });
+
+    console.log(container);
+
+    gsap.to(container, {
+      duration: 0.5,
+      boxShadow: "0px 0px 20px rgb(195, 251, 232)",
+      ease: "bounce",
+      onComplete: () => {
+        gsap.to(container, {
+          duration: 0.25,
+          boxShadow: "none",
+          ease: "elastic.in"
+        })
+      }
+    })
+  });
+}
+
+initFireflies(document.getElementById("buttonContainer"), 14);
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GSAP Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    .firefly {
+      width: 30px;
+      height: 10px;
+      background: yellow;
+      border-radius: 50%;
+      position: absolute;
+      top: 50px;
+      left: 50px;
+      opacity: 0.8;
+      transform: scale(1);
+      transform-origin: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="firefly"></div>
+  <button id="clicker">Click Me</button>
+
+  <script>
+    const firefly = document.querySelector('.firefly');
+    const button = document.getElementById('clicker');
+
+    button.addEventListener('click', () => {
+      gsap.to(firefly, {
+        scale: 1.8,
+        opacity: 1,
+        duration: 0.2,
+        css: { filter: "brightness(2)" },
+        ease: "power2.out",
+        onComplete: () => {
+          gsap.to(firefly, {
+            scale: 1,
+            opacity: 0.8,
+            duration: 0.6,
+            css: { filter: "brightness(1)" },
+            ease: "power2.inOut"
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
