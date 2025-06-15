@@ -35,9 +35,14 @@
     
     <textarea id="templateEditor" rows="4" placeholder="Type a template with {table_name}…"></textarea>
 
-    <button id="generateBtn">Generate</button>
+    <div class="button-container" id="genContainer">
+      <button id="generateBtn" class="magic-button">
+        Generate
+      </button>
+      <div class="firefly-box"></div>
+    </div>
     
-    <pre id="sentenceOutput">Sentence results will appear here.</pre>
+    <div id="sentenceOutput" class="animated-output" aria-live="polite" role="text">Sentence results will appear here.</div>
   </div>
 
   <div class="section">
@@ -48,13 +53,20 @@
         <label for="tableName">Table Name</label>
         <select id="tableNames"></select>
       </div>
+
       <div class="form-group-input">
         <label for="tableCount">Count</label>
         <input type="number" id="tableCount" placeholder="1" min="1">
       </div>
     </div>
     
-    <button id="rollBtn">Roll Table</button>
+    <div class="button-container" id="rollContainer">
+      <button id="rollBtn" class="magic-button">
+        Roll Table
+      </button>
+
+      <div class="firefly-box"></div>
+    </div>
     
     <pre id="tableOutput">Table results will appear here.</pre>
   </div>

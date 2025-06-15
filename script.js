@@ -48,6 +48,8 @@ async function loadTemplates() {
 
 
 
+
+
 //using the table names collected from the index json file,
 //gather all the other correlating tables and
 //store them in an object.
@@ -115,7 +117,11 @@ async function generateSentences() {
   for (let i = 0; i < count; i++) {
     results.push(await renderTemplate(template));
   }
-  sentenceOutput.textContent = results.join('\n\n');
+  
+  const outputText = results.join('\n\n');
+
+  // Animate output to container
+  animatedTyping(outputText, "sentenceOutput");
 }
 
 
@@ -129,54 +135,212 @@ async function rollTable() {
   for (let i = 0; i < count; i++) {
     results.push(table[rollTableKey(table)] || `[Missing entry for ${tableName}]`);
   }
-  tableOutput.textContent = results.join('\n');
+  
+  const outputText = results.join('\n\n');
+
+  // Animate output to container
+  animatedTyping(outputText, "tableOutput");
 }
 
 
 
-// Add SVG particle effect on hover
-function createFloatingParticles(button) {
-  for (let i = 0; i < 12; i++) {
-    const particle = document.createElement("div");
-    particle.className = "particle";
+//
+function animatedTyping(text, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  container.setAttribute('aria-label', text);
+  container.setAttribute('role', 'text');
+  container.setAttribute('aria-live', 'polite');
 
-    // Random angle and distance
-    const angle = Math.random() * 2 * Math.PI;
-    const distance = 40 + Math.random() * 40;
-    const x = Math.cos(angle) * distance + "px";
-    const y = Math.sin(angle) * distance + "px";
+  container.innerHTML = ''; // Clear the container
 
-    particle.style.setProperty("--x", x);
-    particle.style.setProperty("--y", y);
-    particle.style.left = `${button.offsetWidth / 2}px`;
-    particle.style.top = `${button.offsetHeight / 2}px`;
-    particle.style.animationDelay = `${Math.random() * 0.5}s`;
-    particle.style.width = `${4 + Math.random() * 6}px`;
-    particle.style.height = particle.style.width;
+  const words = text.split(' ');
 
-    // Optional: varied soft colors
-    const colors = ["#fff5", "#c0f0ff88", "#ddaaff88", "#ffffff99"];
-    particle.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random() * colors.length)]} 0%, transparent 70%)`;
+  words.forEach((word, index) => {
+    const wordSpan = document.createElement('span');
+    wordSpan.className = 'word';
+    wordSpan.style.textWrap = 'nowrap';
 
-    button.appendChild(particle);
+    for (let char of word) {
+      const charSpan = document.createElement('span');
+      charSpan.className = 'letter';
+      charSpan.textContent = char;
+      charSpan.style.display = 'inline-block';
+      wordSpan.appendChild(charSpan);
+    }
 
-    // Clean up after animation
-    setTimeout(() => {
-      particle.remove();
-    }, 3000);
+    container.appendChild(wordSpan);
+
+    // ✨ Add a space after each word except the last
+    if (index < words.length - 1) {
+      container.appendChild(document.createTextNode(' '));
+    }
+  });
+
+  const letters = container.querySelectorAll('.letter')
+
+  // Animate each span in from a random offset
+  letters.forEach(letter => {
+    gsap.set(letter, {
+      x: gsap.utils.random(-10, 10),
+      y: gsap.utils.random(-30, 30),
+      rotation: gsap.utils.random(-45, 45),
+      scale: 0.6,
+      opacity: 0
+    });
+
+    gsap.to(letter, {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      opacity: 1,
+      duration: 0.6,
+      ease: "power2.out",
+      stagger: {
+        amount: 0.3,
+        from: "random"
+      }
+    });
+  });
+}
+
+
+
+
+
+//This function wrapps many functions that control the fireflies
+//in the buttons.
+//Hover and Click events for the animations are included as well.
+function initFireflies(container, count = 15) {
+  const layer = container.querySelector(':scope > .firefly-box');
+  const width = container.offsetWidth;
+  const height = container.offsetHeight;
+  const fireflies = [];
+
+  console.log(container);
+  console.log(layer);
+
+  for (let i = 0; i < count; i++) {
+    const f = document.createElement("div");
+    f.classList.add("firefly");
+
+    const baseX = Math.random() * (width - 10);
+    const baseY = Math.random() * (height - 10);
+    f.style.left = `${baseX}px`;
+    f.style.top = `${baseY}px`;
+
+    layer.appendChild(f);
+
+    const firefly = {
+      el: f,
+      baseX,
+      baseY,
+      speedMultiplier: 1.25
+    };
+
+    // Fade in and start drifting
+    gsap.to(f, {
+      opacity: 0.6 + Math.random() * 0.3,
+      duration: 2,
+      delay: Math.random() * 2,
+      onComplete: () => drift(firefly)
+    });
+
+    fireflies.push(firefly);
   }
-}
+
+  /**
+   * Animates individual firefly with organic drifting, constrained to button bounds
+   */
+  function drift(firefly) {
+    const { el, baseX, baseY } = firefly;
+
+    const range = 30;
+    const offsetX = (Math.random() - 0.5) * range;
+    const offsetY = (Math.random() - 0.5) * range;
+
+    // Clamp movement to stay within container
+    const newX = Math.min(width - 5, Math.max(5, baseX + offsetX));
+    const newY = Math.min(height - 5, Math.max(5, baseY + offsetY));
+
+    const duration = (2 + Math.random() * 2) / firefly.speedMultiplier;
+
+    gsap.to(el, {
+      x: newX - baseX,
+      y: newY - baseY,
+      duration,
+      delay: Math.random() * (1 / firefly.speedMultiplier),
+      ease: "sine.inOut",
+      onComplete: () => drift(firefly)
+    });
+  }
+
+  //On hover, make all fireflies move faster and glow brighter
+  container.addEventListener("mouseenter", () => {
+    fireflies.forEach(firefly => {
+      firefly.speedMultiplier = 3;
+
+      gsap.to(firefly.el, {
+        opacity: 1,
+        duration: 0.4,
+        ease: "power1.out"
+      });
+    });
+  });
+
+  container.addEventListener("mouseleave", () => {
+    fireflies.forEach(firefly => {
+      firefly.speedMultiplier = 1.25;
+
+      gsap.to(firefly.el, {
+        opacity: 0.6 + Math.random() * 0.3,
+        duration: 0.4,
+        ease: "power1.inOut"
+      });
+    });
+  });
 
 
-function addHoverParticles(button) {
-  let cleanup;
-  button.addEventListener('mouseenter', () => {
-    cleanup = createFloatingParticles(button);
-  });
-  button.addEventListener('mouseleave', () => {
-    if (cleanup) cleanup();
+
+  container.addEventListener('click', () => {
+    const firefliesArr = container.querySelectorAll(":scope > .firefly");
+
+    gsap.to(firefliesArr, {
+      duration: 0.5,
+      opacity: 1,
+      scale: 3,
+      filter: "brightness(2.5)",
+      ease: "bounce",
+      onComplete: () => {
+        gsap.to(firefliesArr, {
+          duration: 0.25,
+          opacity: 0.6 + Math.random() * 0.3,
+          scale: 1,
+          filter: "brightness(1)",
+          transformOrigin: "center",
+          ease: "elastic.in"
+        });
+      }
+    });
+
+    console.log(container);
+
+    gsap.to(container, {
+      duration: 0.5,
+      boxShadow: "0px 0px 20px rgb(195, 251, 232)",
+      ease: "bounce",
+      onComplete: () => {
+        gsap.to(container, {
+          duration: 0.25,
+          boxShadow: "none",
+          ease: "elastic.in"
+        })
+      }
+    })
   });
 }
+
 
 
 
@@ -187,8 +351,6 @@ templateSelect.addEventListener('change', () => {
   templateEditor.value = templateSelect.value;
 });
 
-document.querySelectorAll('button').forEach(addHoverParticles);
-
 generateBtn.addEventListener('click', generateSentences);
 rollBtn.addEventListener('click', rollTable);
 
@@ -197,3 +359,5 @@ rollBtn.addEventListener('click', rollTable);
 //functions to run on load
 loadTables();
 loadTemplates();
+initFireflies(document.getElementById("genContainer"), 25);
+initFireflies(document.getElementById("rollContainer"), 5);

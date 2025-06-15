@@ -51,41 +51,6 @@ textarea {
   margin-bottom: 1rem;
 }
 
-button {
-  position: relative;
-  border: none;
-  border-radius: 4px;
-  padding: 0.6rem 1.2rem;
-  background: #5a5;
-  font-size: 1rem;
-  color: #111;
-  cursor: pointer;
-  overflow: hidden;
-  z-index: 1;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, #90ee90 0%, transparent 70%);
-  opacity: 0;
-  z-index: -1;
-  transition: opacity 0.4s, transform 0.4s;
-  transform: scale(0.8);
-}
-
-button:hover {
-  background-color: #6b6;
-  transform: scale(1.03);
-}
-
-button:hover::before {
-  opacity: 0.3;
-  transform: scale(1.5);
-}
-
 output,
 pre {
   white-space: pre-wrap;
@@ -125,15 +90,94 @@ pre {
 
 
 
+
+.button-container {
+  position: relative;
+  width: 220px;
+  height: 60px;
+}
+
+.firefly-box {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.magic-button {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px) saturate(100%);
+  -webkit-backdrop-filter: blur(15px) saturate(100%);
+  color: white;
+  font-size: 1.2em;
+  text-align: center;
+  line-height: 60px;
+  border: 1px solid rgba(188, 255, 100, 0.1);
+  box-shadow:
+    inset 0 0 5px rgba(255, 255, 255, 0.06),
+    0 6px 10px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(255, 255, 255, 0.03);
+  transition: backdrop-filter 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* LEFT side SVG */
+.magic-button::before,
+.magic-button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  height: 65px;
+  aspect-ratio: 1 / 1; /* Approximate if unknown */
+  background-image: url('assets/button_side.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: brightness(0) invert(1); /* make it white */
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Left */
+.magic-button::before {
+  left: -36px; /* fine-tune as needed */
+}
+
+/* Right (mirrored) */
+.magic-button::after {
+  right: -36px;
+  transform: translateY(-50%) scaleX(-1);
+}
+
+/* Optional: brighten on hover */
+.magic-button:hover::before,
+.magic-button:hover::after {
+  opacity: 0.8;
+}
+
+.magic-button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(13px) saturate(160%);
+  -webkit-backdrop-filter: blur(13px) saturate(160%);
+}
+
 .firefly {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  background: radial-gradient(circle, #fffacd 0%, #ff0 40%, transparent 80%);
+  width: 35px;
+  height: 10px;
   border-radius: 50%;
+  background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgb(85, 231, 212) 40%, transparent 100%);
   opacity: 0;
-  pointer-events: none;
-  filter: blur(0.8px);
+  transform: scale(1);
+  transform-origin: center;
+  z-index: 0;
 }
 
 
