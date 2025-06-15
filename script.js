@@ -182,25 +182,22 @@ function animatedTyping(text, containerId) {
   // Animate each span in from a random offset
   letters.forEach(letter => {
     gsap.set(letter, {
-      x: gsap.utils.random(-10, 10),
-      y: gsap.utils.random(-30, 30),
+      x: gsap.utils.random(-75, 75),
+      y: gsap.utils.random(-75, 75),
       rotation: gsap.utils.random(-45, 45),
-      scale: 0.6,
+      scale: 0,
       opacity: 0
     });
 
     gsap.to(letter, {
+      delay: gsap.utils.random(0, 0.5),
       x: 0,
       y: 0,
       rotation: 0,
       scale: 1,
       opacity: 1,
-      duration: 0.6,
-      ease: "power2.out",
-      stagger: {
-        amount: 0.3,
-        from: "random"
-      }
+      duration: gsap.utils.random(0.25, 0.5),
+      ease: "power2.out"
     });
   });
 }
@@ -304,7 +301,7 @@ function initFireflies(container, count = 15) {
 
 
   container.addEventListener('click', () => {
-    const firefliesArr = container.querySelectorAll(":scope > .firefly");
+    const firefliesArr = container.querySelectorAll(":scope .firefly");
 
     gsap.to(firefliesArr, {
       duration: 0.5,
@@ -319,12 +316,18 @@ function initFireflies(container, count = 15) {
           scale: 1,
           filter: "brightness(1)",
           transformOrigin: "center",
-          ease: "elastic.in"
+          ease: "elastic.in",
+          onComplete: () => {
+            //Once the animation is over, generate the results requested.
+            if (container.id === "genContainer") {
+              generateSentences();
+            } else {
+              rollTable();
+            }
+          }
         });
       }
     });
-
-    console.log(container);
 
     gsap.to(container, {
       duration: 0.5,
@@ -351,8 +354,8 @@ templateSelect.addEventListener('change', () => {
   templateEditor.value = templateSelect.value;
 });
 
-generateBtn.addEventListener('click', generateSentences);
-rollBtn.addEventListener('click', rollTable);
+//generateBtn.addEventListener('click', generateSentences);
+//rollBtn.addEventListener('click', rollTable);
 
 
 

@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TTRPG Generator</title>
+  <title>Dashboard</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bellefair&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
@@ -14,61 +16,63 @@
 </head>
 <body>
 
-  <h1>TTRPG Generator</h1>
+  <h1>Storyteller's Toolbox</h1>
 
-  <div class="section">
-    <h2>
-      Generate Sentence
-    </h2>
-    
-    <div class="form-row">
-      <div class="form-group-select">
-        <label for="templateSelect">Template</label>
-        <select id="templateSelect"></select>
+  <div class="generator-wrapper">
+    <div class="section">
+      <h2>
+        Generate Sentence
+      </h2>
+      
+      <div class="form-row">
+        <div class="form-group-select">
+          <label for="templateSelect">Template</label>
+          <select id="templateSelect"></select>
+        </div>
+      
+        <div class="form-group-input">
+          <label for="sentenceCount">Count</label>
+          <input type="number" id="sentenceCount" placeholder="1" min="1">
+        </div>
       </div>
-    
-      <div class="form-group-input">
-        <label for="sentenceCount">Count</label>
-        <input type="number" id="sentenceCount" placeholder="1" min="1">
+      
+      <textarea id="templateEditor" rows="4" placeholder="Type a template with {table_name}…"></textarea>
+
+      <div class="button-container" id="genContainer">
+        <button id="generateBtn" class="magic-button">
+          Generate
+        </button>
+        <div class="firefly-box"></div>
       </div>
+      
+      <div id="sentenceOutput" class="animated-output" aria-live="polite" role="text">Sentence results will appear here.</div>
     </div>
-    
-    <textarea id="templateEditor" rows="4" placeholder="Type a template with {table_name}…"></textarea>
 
-    <div class="button-container" id="genContainer">
-      <button id="generateBtn" class="magic-button">
-        Generate
-      </button>
-      <div class="firefly-box"></div>
-    </div>
-    
-    <div id="sentenceOutput" class="animated-output" aria-live="polite" role="text">Sentence results will appear here.</div>
-  </div>
+    <div class="section">
+      <h2>Roll from Specific Table</h2>
+      
+      <div class="form-row">
+        <div class="form-group-select">
+          <label for="tableName">Table Name</label>
+          <select id="tableNames"></select>
+        </div>
 
-  <div class="section">
-    <h2>Roll from Specific Table</h2>
-    
-    <div class="form-row">
-      <div class="form-group-select">
-        <label for="tableName">Table Name</label>
-        <select id="tableNames"></select>
+        <div class="form-group-input">
+          <label for="tableCount">Count</label>
+          <input type="number" id="tableCount" placeholder="1" min="1">
+        </div>
       </div>
+      
+      <div class="button-container" id="rollContainer">
+        <button id="rollBtn" class="magic-button">
+          Roll Table
+        </button>
 
-      <div class="form-group-input">
-        <label for="tableCount">Count</label>
-        <input type="number" id="tableCount" placeholder="1" min="1">
+        <div class="firefly-box"></div>
       </div>
+      
+      <div id="tableOutput" class="animated-output" aria-live="polite" role="text">Table results will appear here.</div>
     </div>
-    
-    <div class="button-container" id="rollContainer">
-      <button id="rollBtn" class="magic-button">
-        Roll Table
-      </button>
-
-      <div class="firefly-box"></div>
-    </div>
-    
-    <pre id="tableOutput">Table results will appear here.</pre>
   </div>
 
   <script src="script.js"></script>
