@@ -1,8 +1,11 @@
 [
-  "race",
   "biome",
-  "town_name",
+  "biome_descriptive",
   "nation_name",
-  "place_name",
-  "nation_type"
+  "nation_type",
+  "occupation",
+  "place_adjective",
+  "race_singular",
+  "race_plural",
+  "town_name"
 ]

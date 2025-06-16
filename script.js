@@ -16,6 +16,13 @@ let tableNames = [];
 
 
 
+function capitalizeWords(str) {
+  console.log(str);
+  return str.replace(/\b\w+/g, word => word[0].toUpperCase() + word.slice(1));
+}
+
+
+
 //Load in the index of tables and create a list of options to select
 async function loadTables() {
   const res = await fetch('./tables/index.json');
@@ -39,11 +46,11 @@ async function loadTemplates() {
 
   templates.forEach(template => {
     let option = document.createElement('option');
-    option.textContent = template;
-    option.value = template;
+    option.textContent = template["title"];
+    option.value = template["template"];
     templateSelect.appendChild(option);
   });
-  if (templates.length) templateEditor.value = templates[0];
+  if (templates.length) templateEditor.value = templates[0]["template"];
 }
 
 
@@ -75,8 +82,43 @@ async function getTable(tableName) {
 //pick a random value from the table given
 function rollTableKey(table) {
   const keys = Object.keys(table);
-  const index = Math.floor(Math.random() * keys.length);
-  return keys[index];
+  const rangeEntries = [];
+
+  let maxRoll = 0;
+  let isRange = false;
+
+  for (const key of keys) {
+    const parts = key.split('-').map(n => parseInt(n.trim(), 10));
+
+    if (parts.length === 2) {
+      const [min, max] = parts;
+      rangeEntries.push({ min, max, value: table[key] });
+      maxRoll = Math.max(maxRoll, max);
+      isRange = true;
+    } else if (parts.length === 1 && !isNaN(parts[0])) {
+      const num = parts[0];
+      rangeEntries.push({ min: num, max: num, value: table[key] });
+      maxRoll = Math.max(maxRoll, num);
+    } else {
+      console.warn(`Invalid key in table: "${key}"`);
+    }
+  }
+
+  if (!isRange && keys.length > 0 && rangeEntries.length === 0) {
+    // Fallback to random key (unordered) if table is just plain strings
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    return table[randomKey];
+  }
+
+  const roll = Math.floor(Math.random() * maxRoll) + 1;
+
+  for (const entry of rangeEntries) {
+    if (roll >= entry.min && roll <= entry.max) {
+      return entry.value;
+    }
+  }
+
+  return `[No result for roll ${roll}]`;
 }
 
 
@@ -92,16 +134,26 @@ async function renderTemplate(template) {
   const rolls = {};
 
   for (let v of vars) {
-    const tableName = v.slice(1, -1);
+    let tableName = v.slice(1, -1).trim();
+
+    const capitalize = tableName.startsWith('^');
+    
+    if (capitalize) {
+      tableName = tableName.slice(1).trim();
+    }
+
     const table = await getTable(tableName);
-    const result = table[rollTableKey(table)] || `[Missing entry for ${tableName}]`;
-    rolls[tableName] = result;
+    const result = rollTableKey(table);
+
+    rolls[v] = capitalize ? capitalizeWords(result) : result;
   }
+
+  console.log(rolls);
   
   let rendered = template;
   
-  for (let [key, val] of Object.entries(rolls)) {
-    rendered = rendered.replaceAll(`{${key}}`, val);
+  for (let [placeholder, val] of Object.entries(rolls)) {
+    rendered = rendered.replaceAll(placeholder, val);
   }
   
   return rendered;
@@ -133,7 +185,7 @@ async function rollTable() {
   const table = await getTable(tableName);
   const results = [];
   for (let i = 0; i < count; i++) {
-    results.push(table[rollTableKey(table)] || `[Missing entry for ${tableName}]`);
+    results.push(rollTableKey(table) || `Missing entry for ${tableName}`);
   }
   
   const outputText = results.join('\n\n');
@@ -154,27 +206,36 @@ function animatedTyping(text, containerId) {
 
   container.innerHTML = ''; // Clear the container
 
-  const words = text.split(' ');
+  const results = text.split('\n\n');
 
-  words.forEach((word, index) => {
-    const wordSpan = document.createElement('span');
-    wordSpan.className = 'word';
-    wordSpan.style.textWrap = 'nowrap';
+  results.forEach((result, rIndex) => {
+    const paragraph = document.createElement('p');
+    paragraph.className = 'animated-paragraph';
+    
+    const words = result.split(' ');
 
-    for (let char of word) {
-      const charSpan = document.createElement('span');
-      charSpan.className = 'letter';
-      charSpan.textContent = char;
-      charSpan.style.display = 'inline-block';
-      wordSpan.appendChild(charSpan);
-    }
+    words.forEach((word, wIndex) => {
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'word';
+      wordSpan.style.textWrap = 'nowrap';
 
-    container.appendChild(wordSpan);
+      for (let char of word) {
+        const charSpan = document.createElement('span');
+        charSpan.className = 'letter';
+        charSpan.textContent = char;
+        charSpan.style.display = 'inline-block';
+        wordSpan.appendChild(charSpan);
+      }
 
-    // ✨ Add a space after each word except the last
-    if (index < words.length - 1) {
-      container.appendChild(document.createTextNode(' '));
-    }
+      paragraph.appendChild(wordSpan);
+
+      // Add a space after each word except the last
+      if (wIndex < words.length - 1) {
+        paragraph.appendChild(document.createTextNode(' '));
+      }
+    });
+
+    container.appendChild(paragraph);
   });
 
   const letters = container.querySelectorAll('.letter')
@@ -354,8 +415,24 @@ templateSelect.addEventListener('change', () => {
   templateEditor.value = templateSelect.value;
 });
 
-//generateBtn.addEventListener('click', generateSentences);
-//rollBtn.addEventListener('click', rollTable);
+
+
+//Tab switcher
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+
+    // Update tab button states
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Show/hide content areas
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  });
+});
 
 
 

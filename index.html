@@ -19,7 +19,12 @@
   <h1>Storyteller's Toolbox</h1>
 
   <div class="generator-wrapper">
-    <div class="section">
+    <div class="tab-buttons">
+      <button class="tab-btn active" data-tab="generator">Sentence Generator</button>
+      <button class="tab-btn" data-tab="roller">Roll Table</button>
+    </div>
+
+    <div class="section tab-content active" id="tab-generator">
       <h2>
         Generate Sentence
       </h2>
@@ -45,10 +50,10 @@
         <div class="firefly-box"></div>
       </div>
       
-      <div id="sentenceOutput" class="animated-output" aria-live="polite" role="text">Sentence results will appear here.</div>
+      <div id="sentenceOutput" class="animated-output" aria-live="polite" role="text">Results will appear here.</div>
     </div>
 
-    <div class="section">
+    <div class="section tab-content" id="tab-roller">
       <h2>Roll from Specific Table</h2>
       
       <div class="form-row">
@@ -71,7 +76,7 @@
         <div class="firefly-box"></div>
       </div>
       
-      <div id="tableOutput" class="animated-output" aria-live="polite" role="text">Table results will appear here.</div>
+      <div id="tableOutput" class="animated-output" aria-live="polite" role="text">Results will appear here.</div>
     </div>
   </div>
 

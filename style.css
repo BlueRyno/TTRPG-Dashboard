@@ -70,6 +70,9 @@ textarea {
 }
 
 
+
+
+
 .generator-wrapper {
   width: 33%;
   min-width: 450px;
@@ -78,6 +81,40 @@ textarea {
   justify-content: center;
   align-items: center;
 }
+
+
+
+.tab-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  background: #333;
+  color: #ccc;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.tab-btn.active {
+  background: #5a9d66;
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
 
 
 .section {
@@ -110,7 +147,6 @@ textarea {
   display: flex;
   flex-direction: column;
 }
-
 
 
 

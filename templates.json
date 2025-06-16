@@ -1,5 +1,14 @@
 [
-  "The town of {town_name} is mostly populated by {race} people and resides in the {place_name} {biome} in the {nation_type} of {nation_name}.",
-  "In the {nation_type} of {nation_name}, travelers avoid the {place_name} {biome}, rumored to be cursed by the {race} tribes.",
-  "Legends say {town_name} was founded by a lone {race} warrior in the heart of the {biome}."
+  {
+    "title": "A basic town",
+    "template": "The town of {^town_name}, located in  {^place_adjective} {^biome}, is mostly populated by {race_plural}, who are ruled by the {^nation_type} of {^nation_name}."
+  },
+  {
+    "title": "Beware, traveller!",
+    "template": "In the {^nation_type} of {^nation_name}, travelers avoid the {^place_adjective} {^biome}, rumored to be cursed."
+  },
+  {
+    "title": "Founder",
+    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior in the heart of the {^place_adjective} {^biome}."
+  }
 ]
