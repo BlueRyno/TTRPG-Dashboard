@@ -64,6 +64,8 @@ async function loadTemplates() {
 //keep iterating to gather the rest of the tables.
 async function getTable(tableName) {
   if (!tableCache[tableName]) {
+    console.log(tableCache[tableName], tableName);
+    
     try {
       const res = await fetch(`./tables/${tableName}.json`);
       if (!res.ok) throw new Error();
@@ -123,41 +125,66 @@ function rollTableKey(table) {
 
 
 
-//Find all the variables in the string (marked by curly braces)
-//then loop through them and pick a random result for each.
-//Store the results in an object with each property correlating the
-//table name from the string with the random result.
-//Update the string by replacing the table names and their surrounding
-//braces with the random results.
-async function renderTemplate(template) {
-  const vars = template.match(/\{(.*?)\}/g) || [];
-  const rolls = {};
+async function renderTemplate(template, context = {}) {
+  const varPattern = /\{(\^?[^{}]+?)\}/g;
 
-  for (let v of vars) {
-    let tableName = v.slice(1, -1).trim();
+  async function resolvePlaceholder(keyRaw) {
+    const capitalize = keyRaw.startsWith('^');
+    const key = capitalize ? keyRaw.slice(1) : keyRaw;
 
-    const capitalize = tableName.startsWith('^');
-    
-    if (capitalize) {
-      tableName = tableName.slice(1).trim();
+    // Resolve nested placeholders in the key itself
+    const resolvedKey = await resolveString(key, context);
+
+    // If already in context, use it
+    if (context[resolvedKey]) {
+      return capitalize ? capitalizeWords(context[resolvedKey]) : context[resolvedKey];
     }
 
-    const table = await getTable(tableName);
-    const result = rollTableKey(table);
+    const table = await getTable(resolvedKey);
+    if (!table) return `[Missing table: ${resolvedKey}]`;
 
-    rolls[v] = capitalize ? capitalizeWords(result) : result;
+    const value = rollTableKey(table);
+    context[resolvedKey] = value;
+    return capitalize ? capitalizeWords(value) : value;
   }
 
-  console.log(rolls);
-  
-  let rendered = template;
-  
-  for (let [placeholder, val] of Object.entries(rolls)) {
-    rendered = rendered.replaceAll(placeholder, val);
+  async function resolveString(str, context) {
+    let result = str;
+    let prev;
+    let iterations = 0;
+
+    // Keep replacing until stable or max depth
+    do {
+      prev = result;
+      result = await replaceAsync(result, varPattern, resolvePlaceholder);
+      iterations++;
+    } while (result.includes('{') && result !== prev && iterations < 10);
+
+    return result;
   }
-  
-  return rendered;
+
+  async function replaceAsync(str, regex, asyncFn) {
+    const matches = [];
+    str.replace(regex, (match, group, offset) => {
+      matches.push({ match, group, offset });
+    });
+
+    const replacements = await Promise.all(matches.map(m => asyncFn(m.group)));
+
+    let result = '';
+    let lastIndex = 0;
+    for (let i = 0; i < matches.length; i++) {
+      const { offset, match } = matches[i];
+      result += str.slice(lastIndex, offset) + replacements[i];
+      lastIndex = offset + match.length;
+    }
+    result += str.slice(lastIndex);
+    return result;
+  }
+
+  return resolveString(template, context);
 }
+
 
 
 
