@@ -294,9 +294,10 @@ function animatedTyping(text, containerId) {
 
 
 
-//This function wrapps many functions that control the fireflies
-//in the buttons.
-//Hover and Click events for the animations are included as well.
+//This function wraps many functions that control the
+//fireflies in the buttons.
+//Hover and Click events for the animations are
+//included as well.
 function initFireflies(container, count = 15) {
   const layer = container.querySelector(':scope > .firefly-box');
   const width = container.offsetWidth;
@@ -305,6 +306,8 @@ function initFireflies(container, count = 15) {
 
   console.log(container);
   console.log(layer);
+
+  layer.innerHTML = "";
 
   for (let i = 0; i < count; i++) {
     const f = document.createElement("div");
@@ -463,8 +466,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 
 
+document.querySelector('[data-tab="roller"]').addEventListener('click', () => {
+  initFireflies(document.getElementById("rollContainer"), 15);
+})
+
+
+
 //functions to run on load
 loadTables();
 loadTemplates();
 initFireflies(document.getElementById("genContainer"), 25);
-initFireflies(document.getElementById("rollContainer"), 5);
+
