@@ -10,5 +10,9 @@
   {
     "title": "Founder",
     "template": "Legends say {town_name} was founded by a lone {race_singular} warrior in the heart of the {^place_adjective} {^biome}."
+  },
+  {
+    "title": "Founder 2",
+    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior named {^human_{gender}_name} in the heart of the {^place_adjective} {^biome}."
   }
 ]

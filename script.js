@@ -126,51 +126,65 @@ function rollTableKey(table) {
 
 
 async function renderTemplate(template, context = {}) {
+  // Pattern matches placeholders in the form {key} or {^key} (where ^ means capitalize result)
   const varPattern = /\{(\^?[^{}]+?)\}/g;
 
-  async function resolvePlaceholder(keyRaw) {
-    const capitalize = keyRaw.startsWith('^');
-    const key = capitalize ? keyRaw.slice(1) : keyRaw;
-
-    // Resolve nested placeholders in the key itself
-    const resolvedKey = await resolveString(key, context);
-
-    // If already in context, use it
-    if (context[resolvedKey]) {
-      return capitalize ? capitalizeWords(context[resolvedKey]) : context[resolvedKey];
-    }
-
-    const table = await getTable(resolvedKey);
-    if (!table) return `[Missing table: ${resolvedKey}]`;
-
-    const value = rollTableKey(table);
-    context[resolvedKey] = value;
-    return capitalize ? capitalizeWords(value) : value;
-  }
-
+  // Resolves all placeholders in the input string recursively
   async function resolveString(str, context) {
     let result = str;
     let prev;
     let iterations = 0;
 
-    // Keep replacing until stable or max depth
+    // Repeat replacement until there are no more unresolved placeholders or max depth reached
     do {
       prev = result;
       result = await replaceAsync(result, varPattern, resolvePlaceholder);
       iterations++;
     } while (result.includes('{') && result !== prev && iterations < 10);
 
+    result = result.replace(/\{\^(.+?)\}/g, (_, val) => capitalizeWords(val));
+
     return result;
   }
 
+  // Resolves a single placeholder key and returns its corresponding value
+  async function resolvePlaceholder(keyRaw) {
+    const capitalize = keyRaw.startsWith('^'); // Check for capitalization flag
+    const key = capitalize ? keyRaw.slice(1) : keyRaw; // Strip ^ if present
+
+    // Resolve nested placeholders within the key itself
+    const resolvedKey = await resolveString(key, context);
+
+    // Use the context value if it already exists
+    if (context[resolvedKey]) {
+      return context[resolvedKey];
+    }
+
+    // If not in context, attempt to load a table with this key
+    const table = await getTable(resolvedKey);
+    if (!table) return `[Missing table: ${resolvedKey}]`; // Fallback if table doesn't exist
+
+    // Roll a value from the table and store it in context
+    const value = rollTableKey(table);
+    context[resolvedKey] = value;
+
+    // Return the result, capitalized if needed
+    return capitalize ? capitalizeWords(value) : value;
+  }
+
+  // Performs asynchronous replacement of all regex matches in a string
   async function replaceAsync(str, regex, asyncFn) {
     const matches = [];
+
+    // Collect all matches and their positions
     str.replace(regex, (match, group, offset) => {
       matches.push({ match, group, offset });
     });
 
+    // Resolve all matches asynchronously
     const replacements = await Promise.all(matches.map(m => asyncFn(m.group)));
 
+    // Reconstruct the string with replacements
     let result = '';
     let lastIndex = 0;
     for (let i = 0; i < matches.length; i++) {
@@ -182,6 +196,7 @@ async function renderTemplate(template, context = {}) {
     return result;
   }
 
+  // Start processing the template string
   return resolveString(template, context);
 }
 
