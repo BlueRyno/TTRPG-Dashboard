@@ -8,7 +8,13 @@
 
 @font-face {
   font-family: "Young Serif";
-  src: url("assets/Young-Serif.ttf");
+  font-weight: 400;
+  src: url("assets/Young-Serif.woff2")  format('woff2');
+}
+@font-face {
+  font-family: "Young Serif";
+  font-weight: 200;
+  src: url("assets/YoungSerif-Light.woff2")  format('woff2');
 }
 
 * {
@@ -54,14 +60,26 @@ input[type="number"],
 textarea,
 select {
   margin-top: 0.25rem;
-  border: 1px solid #444;
-  border-radius: 4px;
+  border: 1px solid rgb(117 130 120);
+  border-radius: 0;
   padding: 0.5rem;
   width: 100%;
-  background-color: #2b2b2b;
+  background-color: rgb(31 40 40);
   font-family: "Young-serif";
-  font-size: 1rem;
-  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 200;
+  color: rgb(215 215 215);
+  2px rgba(180 200 200, 0.8);
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('assets/arrow_down.svg');
+  background-repeat: no-repeat;
+  background-size: 1.25rem 1.25rem;
+  background-position: calc(100% - 1rem) 0.66rem;
 }
 
 textarea {
@@ -88,9 +106,12 @@ textarea {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  width: 100%;
 }
 
 .tab-btn {
+  flex-grow: 1;
+  width: 100%;
   background: #333;
   color: #ccc;
   border: none;
