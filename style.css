@@ -71,16 +71,15 @@ input[type="number"],
 textarea,
 select {
   margin-top: 0.25rem;
-  border: 1px solid rgb(117 130 120);
+  border: 1px solid hsl(170, 5%, 48%);
   border-radius: 0;
   padding: 0.5rem;
   width: 100%;
-  background-color: rgb(31 40 40);
+  background-color: hsl(170, 13%, 14%);
   font-family: "Young Serif", Georgia, 'Times New Roman', Times, serif;
   font-size: 1.2rem;
   font-weight: 400;
-  color: rgb(215 215 215);
-  outline: 2px rgba(180 200 200, 0.8);
+  color: hsl(170, 5%, 83%);
 }
 
 input[type="text"],
@@ -90,7 +89,6 @@ select {
   border-top: none;
   border-right: none;
   background-color: transparent;
-  background-image: linear-gradient(to top, hsl(175deg 10% 15%), hsla(175deg, 10%, 30%, 0) 100%);
 }
 
 button {
@@ -107,9 +105,19 @@ select {
   background-position: calc(100% - 1rem) 0.66rem;
 }
 
+select option {
+  background-color: hsl(173, 11%, 15%);
+}
+
 textarea {
   min-height: 100px;
   margin-bottom: 1rem;
+  resize: none;
+}
+
+input:focus, select:focus, textarea:focus, button:focus {
+  outline: 2px solid hsl(170, 5%, 70%);
+  border-radius: 1px;
 }
 
 
@@ -123,8 +131,6 @@ textarea {
   justify-content: center;
   align-items: center;
 }
-
-
 
 .tab-buttons {
   display: flex;
@@ -140,7 +146,7 @@ textarea {
   background: none;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0rem;
   font-family: inherit;
   font-size: 1rem;
   color: hsl(175deg 10% 50%);
@@ -150,6 +156,12 @@ textarea {
 
 .tab-btn.active {
   color: rgb(240 240 240);
+  background-image: radial-gradient(
+    50% 75% at 50% 100%,
+    hsl(175deg 10% 25%),
+    hsla(175deg, 10%, 25%, .5) 50%,
+    hsla(175deg, 10%, 25%, 0) 100%
+  );
 }
 
 .tab-content {
@@ -180,16 +192,30 @@ textarea {
 
 .form-group-select {
   flex: 3;
-  min-width: 120px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  min-width: 120px;
+  background-image: linear-gradient(
+    to top,
+    hsl(175deg 10% 15%),
+    hsla(175deg, 10%, 15%, .5) 15%,
+    hsla(175deg, 10%, 15%, 0) 50%
+  );
 }
 
 .form-group-input {
   flex: 1;
-  min-width: 80px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  min-width: 80px;
+  background-image: linear-gradient(
+    to top,
+    hsl(175deg 10% 15%),
+    hsla(175deg, 10%, 15%, .5) 15%,
+    hsla(175deg, 10%, 15%, 0) 50%
+  );
 }
 
 
@@ -295,7 +321,7 @@ textarea {
 
 
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .generator-wrapper {
     width: calc(100% - 2rem);
   }
