@@ -16,6 +16,8 @@ let tableNames = [];
 
 
 
+
+
 function capitalizeWords(str) {
   console.log(str);
   return str.replace(/\b\w+/g, word => word[0].toUpperCase() + word.slice(1));
@@ -81,6 +83,8 @@ async function getTable(tableName) {
 
 
 
+
+
 //pick a random value from the table given
 function rollTableKey(table) {
   const keys = Object.keys(table);
@@ -125,6 +129,8 @@ function rollTableKey(table) {
 
 
 
+
+
 async function renderTemplate(template, context = {}) {
   // Pattern matches placeholders in the form {key} or {^key} (where ^ means capitalize result)
   const varPattern = /\{(\^?[^{}]+?)\}/g;
@@ -147,10 +153,16 @@ async function renderTemplate(template, context = {}) {
     return result;
   }
 
-  // Resolves a single placeholder key and returns its corresponding value
+
+
+  //Resolves a single placeholder key and returns its corresponding value.
   async function resolvePlaceholder(keyRaw) {
-    const capitalize = keyRaw.startsWith('^'); // Check for capitalization flag
-    const key = capitalize ? keyRaw.slice(1) : keyRaw; // Strip ^ if present
+    
+    // Check for a capitalization flag, which is a ^.
+    const capitalize = keyRaw.startsWith('^');
+
+    // Strip ^ or @ if present
+    let key = keyRaw.replace(/^(\^@?|@\^?)/, '');
 
     // Resolve nested placeholders within the key itself
     const resolvedKey = await resolveString(key, context);
@@ -171,6 +183,8 @@ async function renderTemplate(template, context = {}) {
     // Return the result, capitalized if needed
     return capitalize ? capitalizeWords(value) : value;
   }
+
+
 
   // Performs asynchronous replacement of all regex matches in a string
   async function replaceAsync(str, regex, asyncFn) {
@@ -196,9 +210,12 @@ async function renderTemplate(template, context = {}) {
     return result;
   }
 
+
+
   // Start processing the template string
   return resolveString(template, context);
 }
+
 
 
 
@@ -220,6 +237,8 @@ async function generateSentences() {
 
 
 
+
+
 //Generate one or more random results from the specific table selected.
 async function rollTable() {
   const tableName = tableNameSelect.value.trim();
@@ -235,6 +254,8 @@ async function rollTable() {
   // Animate output to container
   animatedTyping(outputText, "tableOutput");
 }
+
+
 
 
 
@@ -379,6 +400,8 @@ function initFireflies(container, count = 15) {
     });
   }
 
+
+
   //On hover, make all fireflies move faster and glow brighter
   container.addEventListener("mouseenter", () => {
     fireflies.forEach(firefly => {
@@ -391,6 +414,8 @@ function initFireflies(container, count = 15) {
       });
     });
   });
+
+
 
   container.addEventListener("mouseleave", () => {
     fireflies.forEach(firefly => {
@@ -435,6 +460,8 @@ function initFireflies(container, count = 15) {
       }
     });
 
+
+    
     gsap.to(container, {
       duration: 0.5,
       boxShadow: "0px 0px 20px rgb(195, 251, 232)",
@@ -451,7 +478,7 @@ function initFireflies(container, count = 15) {
 }
 
 
-
+d\
 
 
 //when a sentence template is changed,
