@@ -132,73 +132,81 @@ function rollTableKey(table) {
 
 
 async function renderTemplate(template, context = {}) {
-  // Pattern matches placeholders in the form {key} or {^key} (where ^ means capitalize result)
-  const varPattern = /\{(\^?[^{}]+?)\}/g;
+  const varPattern = /\{(\^?@?[^{}]+?)\}/g;
+  const memoCache = {};
 
-  // Resolves all placeholders in the input string recursively
-  async function resolveString(str, context) {
+  // Helper: Capitalize each word
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // Main recursive resolver
+  async function resolveString(str, tempCache = {}) {
     let result = str;
     let prev;
     let iterations = 0;
 
-    // Repeat replacement until there are no more unresolved placeholders or max depth reached
     do {
       prev = result;
-      result = await replaceAsync(result, varPattern, resolvePlaceholder);
-      iterations++;
-    } while (result.includes('{') && result !== prev && iterations < 10);
+      result = await replaceAsync(result, varPattern, async (keyRaw) => {
+        // Parse flags
+        const capitalize = keyRaw.includes('^');
+        const memoized = keyRaw.includes('@');
+        const key = keyRaw.replace(/^[\^@]+/, '');
 
-    result = result.replace(/\{\^(.+?)\}/g, (_, val) => capitalizeWords(val));
+        // Recursively resolve any placeholders in the key itself
+        const resolvedKey = await resolveString(key, tempCache);
+
+        // Memoization: Use memoCache if available
+        if (memoized && memoCache.hasOwnProperty(resolvedKey)) {
+          let val = memoCache[resolvedKey];
+          return capitalize ? capitalizeWords(val) : val;
+        }
+
+        // Use context if available
+        if (context.hasOwnProperty(resolvedKey)) {
+          let val = context[resolvedKey];
+          if (memoized) memoCache[resolvedKey] = val;
+          return capitalize ? capitalizeWords(val) : val;
+        }
+
+        // Prevent infinite recursion in this run
+        if (tempCache.hasOwnProperty(resolvedKey)) {
+          let val = tempCache[resolvedKey];
+          return capitalize ? capitalizeWords(val) : val;
+        }
+
+        // Otherwise, fetch table and roll
+        const table = await getTable(resolvedKey);
+        if (!table) return `[Missing table: ${resolvedKey}]`;
+        let val = rollTableKey(table);
+
+        // Store in tempCache for this run
+        tempCache[resolvedKey] = val;
+        // Store in memoCache if needed
+        if (memoized) memoCache[resolvedKey] = val;
+
+        return capitalize ? capitalizeWords(val) : val;
+      });
+      iterations++;
+    } while (
+      result.match(varPattern) &&
+      result !== prev &&
+      iterations < 10
+    );
 
     return result;
   }
 
-
-
-  //Resolves a single placeholder key and returns its corresponding value.
-  async function resolvePlaceholder(keyRaw) {
-    
-    // Check for a capitalization flag, which is a ^.
-    const capitalize = keyRaw.startsWith('^');
-
-    // Strip ^ or @ if present
-    let key = keyRaw.replace(/^(\^@?|@\^?)/, '');
-
-    // Resolve nested placeholders within the key itself
-    const resolvedKey = await resolveString(key, context);
-
-    // Use the context value if it already exists
-    if (context[resolvedKey]) {
-      return context[resolvedKey];
-    }
-
-    // If not in context, attempt to load a table with this key
-    const table = await getTable(resolvedKey);
-    if (!table) return `[Missing table: ${resolvedKey}]`; // Fallback if table doesn't exist
-
-    // Roll a value from the table and store it in context
-    const value = rollTableKey(table);
-    context[resolvedKey] = value;
-
-    // Return the result, capitalized if needed
-    return capitalize ? capitalizeWords(value) : value;
-  }
-
-
-
-  // Performs asynchronous replacement of all regex matches in a string
+  // Async regex replace
   async function replaceAsync(str, regex, asyncFn) {
     const matches = [];
-
-    // Collect all matches and their positions
     str.replace(regex, (match, group, offset) => {
       matches.push({ match, group, offset });
     });
-
-    // Resolve all matches asynchronously
-    const replacements = await Promise.all(matches.map(m => asyncFn(m.group)));
-
-    // Reconstruct the string with replacements
+    const replacements = await Promise.all(
+      matches.map(m => asyncFn(m.group))
+    );
     let result = '';
     let lastIndex = 0;
     for (let i = 0; i < matches.length; i++) {
@@ -210,10 +218,8 @@ async function renderTemplate(template, context = {}) {
     return result;
   }
 
-
-
-  // Start processing the template string
-  return resolveString(template, context);
+  // Start resolution
+  return resolveString(template);
 }
 
 
@@ -478,7 +484,7 @@ function initFireflies(container, count = 15) {
 }
 
 
-d\
+
 
 
 //when a sentence template is changed,
