@@ -131,95 +131,121 @@ function rollTableKey(table) {
 
 
 
-async function renderTemplate(template, context = {}) {
-  const varPattern = /\{(\^?@?[^{}]+?)\}/g;
-  const memoCache = {};
+async function renderTemplate(template) {
+  const cache = {};
 
-  // Helper: Capitalize each word
-  function capitalizeWords(str) {
-    return str.replace(/\b\w/g, c => c.toUpperCase());
-  }
+  // 1. Parse the template into a tree of nodes:
+  //    Each node is either:
+  //      { type: 'text', value: 'some literal text' }
+  //    or { type: 'placeholder', content: innerString, children: [subnodes] }
+  function parseNodes(str) {
+    const nodes = [];
+    let i = 0;
 
-  // Main recursive resolver
-  async function resolveString(str, tempCache = {}) {
-    let result = str;
-    let prev;
-    let iterations = 0;
-
-    do {
-      prev = result;
-      result = await replaceAsync(result, varPattern, async (keyRaw) => {
-        // Parse flags
-        const capitalize = keyRaw.includes('^');
-        const memoized = keyRaw.includes('@');
-        const key = keyRaw.replace(/^[\^@]+/, '');
-
-        // Recursively resolve any placeholders in the key itself
-        const resolvedKey = await resolveString(key, tempCache);
-
-        // Memoization: Use memoCache if available
-        if (memoized && memoCache.hasOwnProperty(resolvedKey)) {
-          let val = memoCache[resolvedKey];
-          return capitalize ? capitalizeWords(val) : val;
+    while (i < str.length) {
+      if (str[i] === '{') {
+        // When we find a '{', we need to find the matching '}' — but there may be nested {}
+        let depth = 1;
+        let j = i + 1;
+        while (j < str.length && depth > 0) {
+          if (str[j] === '{') depth++;
+          else if (str[j] === '}') depth--;
+          j++;
         }
 
-        // Use context if available
-        if (context.hasOwnProperty(resolvedKey)) {
-          let val = context[resolvedKey];
-          if (memoized) memoCache[resolvedKey] = val;
-          return capitalize ? capitalizeWords(val) : val;
+        if (depth !== 0) {
+          // If we didn’t find a closing '}', just treat it as a literal '{'
+          nodes.push({ type: 'text', value: '{' });
+          i++;
+        } else {
+          // We found a complete {...}, so extract the content inside
+          const inner = str.slice(i + 1, j - 1);
+          // Recursively parse any inner placeholders
+          const children = parseNodes(inner);
+          nodes.push({ type: 'placeholder', content: inner, children });
+          // Move past the '}'
+          i = j;
         }
-
-        // Prevent infinite recursion in this run
-        if (tempCache.hasOwnProperty(resolvedKey)) {
-          let val = tempCache[resolvedKey];
-          return capitalize ? capitalizeWords(val) : val;
-        }
-
-        // Otherwise, fetch table and roll
-        const table = await getTable(resolvedKey);
-        if (!table) return `[Missing table: ${resolvedKey}]`;
-        let val = rollTableKey(table);
-
-        // Store in tempCache for this run
-        tempCache[resolvedKey] = val;
-        // Store in memoCache if needed
-        if (memoized) memoCache[resolvedKey] = val;
-
-        return capitalize ? capitalizeWords(val) : val;
-      });
-      iterations++;
-    } while (
-      result.match(varPattern) &&
-      result !== prev &&
-      iterations < 10
-    );
-
-    return result;
-  }
-
-  // Async regex replace
-  async function replaceAsync(str, regex, asyncFn) {
-    const matches = [];
-    str.replace(regex, (match, group, offset) => {
-      matches.push({ match, group, offset });
-    });
-    const replacements = await Promise.all(
-      matches.map(m => asyncFn(m.group))
-    );
-    let result = '';
-    let lastIndex = 0;
-    for (let i = 0; i < matches.length; i++) {
-      const { offset, match } = matches[i];
-      result += str.slice(lastIndex, offset) + replacements[i];
-      lastIndex = offset + match.length;
+      } else {
+        // If it’s just normal text (not a '{'), gather it until the next '{'
+        let start = i;
+        while (i < str.length && str[i] !== '{') i++;
+        nodes.push({ type: 'text', value: str.slice(start, i) });
+      }
     }
-    result += str.slice(lastIndex);
+
+    //console.log(nodes);
+    return nodes;
+  }
+
+  // STEP 2: Recursively resolve all nodes (text + placeholders)
+  async function resolveNodes(nodes) {
+    let result = '';
+
+    for (const node of nodes) {
+      if (node.type === 'text') {
+        // Just add plain text to the result
+        result += node.value;
+
+      } else if (node.type === 'placeholder') {
+        // First, resolve all the placeholder's children (for nested placeholders)
+        const innerResolved = await resolveNodes(node.children);
+
+        // Handle prefix symbols
+        let str = innerResolved;
+        let useCache = false;
+        let capitalize = false;
+
+        // Look for leading @ or ^ symbols (can be in any order)
+        let changed = true;
+        while (changed && str.length > 0) {
+          changed = false;
+          if (str.startsWith('@')) {
+            useCache = true;
+            str = str.slice(1);
+            changed = true;
+          }
+          
+          if (str.startsWith('^')) {
+            capitalize = true;
+            str = str.slice(1);
+            changed = true;
+          }
+        }
+
+        // This is the final key used to look up the table
+        const tableKey = str;
+
+        // Try to get a cached value (if @ was used)
+        let picked;
+        if (useCache && cache.hasOwnProperty(tableKey)) {
+          picked = cache[tableKey];
+        } else {
+          // Otherwise, fetch the table and pick a result
+          const table = await getTable(tableKey);
+          picked = rollTableKey(table);
+          if (useCache) {
+            // Store it for future reuse
+            cache[tableKey] = picked;
+          }
+        }
+
+        // Capitalize the first letter if ^ was used
+        if (capitalize && picked.length > 0) {
+          picked = picked.charAt(0).toUpperCase() + picked.slice(1);
+        }
+
+        result += picked;
+      }
+    }
+
     return result;
   }
 
-  // Start resolution
-  return resolveString(template);
+  // STEP 3: Parse and resolve
+  const nodes = parseNodes(template);
+  const final = await resolveNodes(nodes);
+  return final;
 }
 
 
@@ -346,8 +372,8 @@ function initFireflies(container, count = 15) {
   const height = container.offsetHeight;
   const fireflies = [];
 
-  console.log(container);
-  console.log(layer);
+  //console.log(container);
+  //console.log(layer);
 
   layer.innerHTML = "";
 

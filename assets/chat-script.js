@@ -1,95 +1,126 @@
-async function renderTemplate(template, context = {}) {
-  const varPattern = /\{(\^?@?[^{}]+?)\}/g;
-  const memoCache = {};
+async function renderTemplate(template) {
+  const cache = {};
 
-  // Helper: Capitalize each word
-  function capitalizeWords(str) {
-    return str.replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  // Main recursive resolver
-  async function resolveString(str, tempCache = {}) {
-    let result = str;
-    let prev;
-    let iterations = 0;
-
-    do {
-      prev = result;
-      result = await replaceAsync(result, varPattern, async (keyRaw) => {
-        // Parse flags
-        const capitalize = keyRaw.startsWith('^');
-        const memoized = keyRaw.includes('@');
-        const key = keyRaw.replace(/^[\^@]+/, '');
-
-        // Recursively resolve any placeholders in the key itself
-        const resolvedKey = await resolveString(key, tempCache);
-
-        // Memoization: Use memoCache if available
-        if (memoized && memoCache.hasOwnProperty(resolvedKey) && memoCache[resolvedKey] != null) {
-          let val = memoCache[resolvedKey];
-          return capitalize ? capitalizeWords(val) : val;
+  // 1. Parse the template into a tree of nodes:
+  //    Each node is either:
+  //      { type: 'text', value: 'some literal text' }
+  //    or { type: 'placeholder', content: innerString, children: [subnodes] }
+  function parseNodes(str) {
+    const nodes = [];
+    let i = 0;
+    while (i < str.length) {
+      if (str[i] === '{') {
+        // find matching closing brace, accounting for nested braces
+        let depth = 1;
+        let j = i + 1;
+        while (j < str.length && depth > 0) {
+          if (str[j] === '{') depth++;
+          else if (str[j] === '}') depth--;
+          j++;
         }
-
-        // If memoized, reserve a spot in the cache to prevent duplicate work
-        if (memoized && !memoCache.hasOwnProperty(resolvedKey)) {
-          memoCache[resolvedKey] = null; // placeholder to prevent recursion
+        if (depth !== 0) {
+          // no matching closing brace: treat '{' as literal
+          nodes.push({ type: 'text', value: '{' });
+          i++;
+        } else {
+          // substring inside braces: str.slice(i+1, j-1)
+          const inner = str.slice(i + 1, j - 1);
+          // recursively parse inner content
+          const children = parseNodes(inner);
+          nodes.push({ type: 'placeholder', content: inner, children });
+          i = j;
         }
-
-        // Use context if available
-        if (context.hasOwnProperty(resolvedKey)) {
-          let val = context[resolvedKey];
-          if (memoized) memoCache[resolvedKey] = val;
-          return capitalize ? capitalizeWords(val) : val;
-        }
-
-        // Prevent infinite recursion in this run
-        if (tempCache.hasOwnProperty(resolvedKey)) {
-          let val = tempCache[resolvedKey];
-          return capitalize ? capitalizeWords(val) : val;
-        }
-
-        // Otherwise, fetch table and roll
-        const table = await getTable(resolvedKey);
-        if (!table) return `[Missing table: ${resolvedKey}]`;
-        let val = rollTableKey(table);
-
-        // Store in tempCache for this run
-        tempCache[resolvedKey] = val;
-        // Store in memoCache if needed
-        if (memoized) memoCache[resolvedKey] = val;
-
-        return capitalize ? capitalizeWords(val) : val;
-      });
-      iterations++;
-    } while (
-      result.match(varPattern) &&
-      result !== prev &&
-      iterations < 10
-    );
-
-    return result;
-  }
-
-  // Async regex replace
-  async function replaceAsync(str, regex, asyncFn) {
-    const matches = [];
-    str.replace(regex, (match, group, offset) => {
-      matches.push({ match, group, offset });
-    });
-    const replacements = await Promise.all(
-      matches.map(m => asyncFn(m.group))
-    );
-    let result = '';
-    let lastIndex = 0;
-    for (let i = 0; i < matches.length; i++) {
-      const { offset, match } = matches[i];
-      result += str.slice(lastIndex, offset) + replacements[i];
-      lastIndex = offset + match.length;
+      } else {
+        // accumulate literal text until next '{'
+        let start = i;
+        while (i < str.length && str[i] !== '{') i++;
+        nodes.push({ type: 'text', value: str.slice(start, i) });
+      }
     }
-    result += str.slice(lastIndex);
+    return nodes;
+  }
+
+  // 2. Resolve a node tree to a string, handling prefixes and caching.
+  //    getTable(name) and rollTableKey(table) are assumed available.
+  async function resolveNodes(nodes) {
+    let result = '';
+    for (const node of nodes) {
+      if (node.type === 'text') {
+        result += node.value;
+      } else if (node.type === 'placeholder') {
+        // First, resolve all children to get the full inner string
+        const innerResolved = await resolveNodes(node.children);
+
+        // Then handle prefixes: @ (cache) and ^ (capitalize)
+        let str = innerResolved;
+        let useCache = false;
+        let capitalize = false;
+        // consume prefixes in order until none remain
+        let changed = true;
+        while (changed && str.length > 0) {
+          changed = false;
+          if (str.startsWith('@')) {
+            useCache = true;
+            str = str.slice(1);
+            changed = true;
+          }
+          if (str.startsWith('^')) {
+            capitalize = true;
+            str = str.slice(1);
+            changed = true;
+          }
+        }
+        const tableKey = str;
+
+        // Lookup or cache
+        let picked;
+        if (useCache && cache.hasOwnProperty(tableKey)) {
+          picked = cache[tableKey];
+        } else {
+          // fetch table and roll
+          const table = await getTable(tableKey);
+          picked = rollTableKey(table);
+          if (useCache) {
+            cache[tableKey] = picked;
+          }
+        }
+        // Capitalize if needed
+        if (capitalize && picked.length > 0) {
+          picked = picked.charAt(0).toUpperCase() + picked.slice(1);
+        }
+        result += picked;
+      }
+    }
     return result;
   }
+
+  // Parse + resolve
+  const nodes = parseNodes(template);
+  const final = await resolveNodes(nodes);
+  return final;
+}
+
+
+/*
+async function renderTemplate(template) {
+  //fetch table and roll
+  const table = await getTable();
+  let val = rollTableKey(table);
+
 
   // Start resolution
-  return resolveString(template);
+  return resolvedStr;
 }
+*/
+
+
+/*
+For example, this:
+"Legends say {town_name} was founded by a lone {@race_singular} warrior named {^human_{gender}_name} in the heart of the {^place_adjective} {^biome}. {^@race_singular}"
+
+Should return this:
+"Legends say Winterrun was founded by a lone Half-Orc warrior named Harlon in the heart of the Bramble Reach. Half-Orc"
+
+
+Legends say {town_name} was founded by a lone {@gender} {@race_singular} warrior named {^human_{@gender}_name} in the heart of the {^place_adjective} {^biome}. {^gender}
+*/
