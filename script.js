@@ -132,19 +132,23 @@ function rollTableKey(table) {
 
 
 async function renderTemplate(template) {
+  // Tracks used values per table for `!`
+  const usedValues = {};
   const cache = {};
 
-  // 1. Parse the template into a tree of nodes:
-  //    Each node is either:
-  //      { type: 'text', value: 'some literal text' }
-  //    or { type: 'placeholder', content: innerString, children: [subnodes] }
+  // Step 1: Parse the template into a tree of nodes:
+  // Each node is:
+  //   { type: 'text', value: 'some literal text' }
+  // or { type: 'placeholder', content: innerString, children: [subnodes] }
+  // or { type: 'dice', expression: innerString }
   function parseNodes(str) {
     const nodes = [];
     let i = 0;
 
     while (i < str.length) {
+      // When we find a '{', we need to find the matching '}'
+      // but there may be nested {}
       if (str[i] === '{') {
-        // When we find a '{', we need to find the matching '}' — but there may be nested {}
         let depth = 1;
         let j = i + 1;
         while (j < str.length && depth > 0) {
@@ -166,10 +170,26 @@ async function renderTemplate(template) {
           // Move past the '}'
           i = j;
         }
+
+      // Handle [] dice or range rolls
+      } else if (str[i] === '[') {
+        let j = i + 1;
+        while (j < str.length && str[j] !== ']') j++;
+
+        if (j === str.length) {
+          // unmatched
+          nodes.push({ type: 'text', value: '[' });
+          i++;
+        } else {
+          const inner = str.slice(i + 1, j);
+          nodes.push({ type: 'dice', expression: inner });
+          i = j + 1;
+        }
+
+      // If it’s just normal text (not a '{'), gather it until the next '{'
       } else {
-        // If it’s just normal text (not a '{'), gather it until the next '{'
         let start = i;
-        while (i < str.length && str[i] !== '{') i++;
+        while (i < str.length && str[i] !== '{' && str[i] !== '[') i++;
         nodes.push({ type: 'text', value: str.slice(start, i) });
       }
     }
@@ -178,23 +198,80 @@ async function renderTemplate(template) {
     return nodes;
   }
 
-  // STEP 2: Recursively resolve all nodes (text + placeholders)
+
+
+  // STEP 2: Evaluate dice expressions or ranges
+  function rollDiceExpression(expr) {
+    // Remove whitespace
+    const cleaned = expr.replace(/\s+/g, '');
+
+    // Range format: e.g., 3-16
+    if (!cleaned.includes('d')) {
+      const [min, max] = cleaned.split('-').map(Number);
+      if (!isNaN(min) && !isNaN(max) && min <= max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      return `[invalid range: ${expr}]`;
+    }
+
+    // Dice expression: tokenize numbers and operators
+    const tokens = cleaned.match(/(\d*d\d+|\d+|[+-])/g);
+    if (!tokens) return `[invalid roll: ${expr}]`;
+
+    let total = 0;
+    let currentOp = '+';
+
+    for (const token of tokens) {
+      if (token === '+' || token === '-') {
+        currentOp = token;
+      } else if (token.includes('d')) {
+        const [countStr, sidesStr] = token.split('d');
+        const count = parseInt(countStr) || 1;
+        const sides = parseInt(sidesStr);
+        if (isNaN(sides)) return `[invalid roll: ${expr}]`;
+
+        let rollSum = 0;
+        for (let i = 0; i < count; i++) {
+          rollSum += Math.floor(Math.random() * sides) + 1;
+        }
+
+        total = currentOp === '+' ? total + rollSum : total - rollSum;
+
+      } else {
+        // Plain number
+        const num = parseInt(token);
+        if (isNaN(num)) return `[invalid number: ${token}]`;
+        total = currentOp === '+' ? total + num : total - num;
+      }
+    }
+
+    return total;
+  }
+
+
+
+  // STEP 3: Recursively resolve all nodes (text + placeholders)
   async function resolveNodes(nodes) {
     let result = '';
 
     for (const node of nodes) {
+      // Just add plain text to the result
       if (node.type === 'text') {
-        // Just add plain text to the result
         result += node.value;
 
+      // Add the results of the die rolls placeholder.
+      } else if (node.type === 'dice') {
+        result += rollDiceExpression(node.expression);
+
+      // Resolve all the placeholder's children (for nested placeholders)
       } else if (node.type === 'placeholder') {
-        // First, resolve all the placeholder's children (for nested placeholders)
         const innerResolved = await resolveNodes(node.children);
 
         // Handle prefix symbols
         let str = innerResolved;
         let useCache = false;
         let capitalize = false;
+        let unique = false;
 
         // Look for leading @ or ^ symbols (can be in any order)
         let changed = true;
@@ -211,6 +288,12 @@ async function renderTemplate(template) {
             str = str.slice(1);
             changed = true;
           }
+
+          if (str.startsWith('!')) {
+            unique = true;
+            str = str.slice(1);
+            changed = true;
+          }
         }
 
         // This is the final key used to look up the table
@@ -218,16 +301,49 @@ async function renderTemplate(template) {
 
         // Try to get a cached value (if @ was used)
         let picked;
-        if (useCache && cache.hasOwnProperty(tableKey)) {
+
+        // Caching (only for non-unique entries)
+        if (useCache && !unique && cache.hasOwnProperty(tableKey)) {
           picked = cache[tableKey];
+
         } else {
           // Otherwise, fetch the table and pick a result
           const table = await getTable(tableKey);
-          picked = rollTableKey(table);
-          if (useCache) {
-            // Store it for future reuse
-            cache[tableKey] = picked;
+
+          // If unique is required '{!___}',
+          // reroll until we get an unused value
+          if (unique) {
+            const used = usedValues[tableKey] || new Set();
+
+            const maxAttempts = 50; // prevent infinite loops
+            let attempts = 0;
+            let result;
+
+            do {
+              result = rollTableKey(table);
+              attempts++;
+            } while (used.has(result) && attempts < maxAttempts);
+
+            if (used.has(result)) {
+              console.warn(`All values used for unique table: ${tableKey}`);
+              // fallback to a random roll (even if repeated)
+              result = rollTableKey(table);
+            }
+
+            used.add(result);
+            usedValues[tableKey] = used;
+            picked = result;
+
+          } else {
+            picked = rollTableKey(table);
+
+            if (useCache) {
+              // Store it for future reuse
+              cache[tableKey] = picked;
+            }
           }
+
+          console.log(usedValues);
         }
 
         // Capitalize the first letter if ^ was used
