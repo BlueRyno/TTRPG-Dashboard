@@ -33,6 +33,7 @@ body {
   font-family: "Young Serif", serif;
   font-weight: 300;
   letter-spacing: 0.5px;
+  min-height: 100vh;
 }
 
 h1 {
@@ -51,7 +52,9 @@ h2 {
 
 label {
   display: block;
-  margin-bottom: 0.25rem;
+  margin-top: 0.25rem;
+  margin-bottom: -0.25rem;
+  margin-left: 0.5rem;
   font-size: 1.125rem;
   color: #ddd;
 }
@@ -101,7 +104,7 @@ select {
   appearance: none;
   background-image: url('assets/arrow_down.svg');
   background-repeat: no-repeat;
-  background-size: 1.25rem 1.25rem;
+  background-size: 1.5rem 1.5rem;
   background-position: calc(100% - 1rem) 0.66rem;
 }
 
@@ -110,8 +113,8 @@ select option {
 }
 
 textarea {
-  min-height: 100px;
-  margin-bottom: 1rem;
+  min-height: 200px;
+  margin-bottom: 1.5rem;
   resize: none;
 }
 
@@ -125,7 +128,8 @@ input:focus, select:focus, textarea:focus {
 
 
 .generator-wrapper {
-  width: 50%;
+  width: 75%;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -137,7 +141,7 @@ input:focus, select:focus, textarea:focus {
   gap: 1rem;
   width: 100%;
   border-bottom: 1px solid rgb(117 130 120);
-  margin-bottom: 0.3rem;
+  margin-bottom: 2rem;
 }
 
 .tab-btn {
@@ -152,19 +156,24 @@ input:focus, select:focus, textarea:focus {
   letter-spacing: 1px;
   color: hsl(175deg 10% 50%);
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: color 0.5s ease-in-out;
 }
 
 .tab-btn:hover, .tab-btn:active {
-  backdrop-filter: blur(15px) saturate(150%);
-  -webkit-backdrop-filter: blur(15px) saturate(100%);
+  color: hsl(175deg 20% 70%);
+  background-image: radial-gradient(
+    50% 75% at 50% 100%,
+    hsl(175deg 20% 25%),
+    hsla(175deg, 10%, 15%, .5) 50%,
+    hsla(175deg, 10%, 15%, 0) 100%
+  );
 }
 
 .tab-btn.active {
-  color: rgb(240 240 240);
+  color: hsl(175deg 10% 90%);
   background-image: radial-gradient(
     50% 75% at 50% 100%,
-    hsl(175deg 10% 25%),
+    hsl(175deg 20% 35%),
     hsla(175deg, 10%, 25%, .5) 50%,
     hsla(175deg, 10%, 25%, 0) 100%
   );
@@ -188,7 +197,14 @@ input:focus, select:focus, textarea:focus {
   border-bottom: 2px solid #636a6b;
 }
 
+.formInputs {
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem
+}
+
 .form-row {
+  flex: 1;
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
@@ -197,7 +213,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .form-group-select {
-  flex: 3;
+  flex: 2;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -224,13 +240,16 @@ input:focus, select:focus, textarea:focus {
   );
 }
 
+.templateArea {
+  flex: 1;
+}
+
 
 
 .button-container {
   position: relative;
-  width: 220px;
+  width: 100%;
   height: 60px;
-  margin-left: 0.5rem;
 }
 
 .magic-button {
@@ -285,7 +304,7 @@ input:focus, select:focus, textarea:focus {
   transform: translateY(-50%) scaleX(-1);
 }
 
-/* Optional: brighten on hover */
+/* brighten on hover */
 .magic-button:hover::before,
 .magic-button:focus::before,
 .magic-button:hover::after,
@@ -294,9 +313,9 @@ input:focus, select:focus, textarea:focus {
 }
 
 .magic-button:hover, .magic-button:focus {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px) saturate(180%);
-  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  background: hsla(0, 0%, 100%, 0.06);
+  backdrop-filter: blur(13px) saturate(180%);
+  -webkit-backdrop-filter: blur(13px) saturate(180%);
   outline: none;
 }
 
@@ -330,13 +349,24 @@ input:focus, select:focus, textarea:focus {
 
 
 
-@media (max-width: 800px) {
+@media (min-width: 1200px) {
   .generator-wrapper {
-    width: calc(100%);
+    width: 50%;
   }
+}
 
-  .form-row {
-    flex-direction: column;
-    align-items: stretch;
+
+
+@media (min-width: 1600px) {
+  .generator-wrapper {
+    width: 33%;
+  }
+}
+
+
+
+@media (max-width: 900px) {
+  .generator-wrapper {
+    width: 100%;
   }
 }

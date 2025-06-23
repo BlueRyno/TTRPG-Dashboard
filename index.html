@@ -26,23 +26,23 @@
     </div>
 
     <div class="section tab-content active" id="tab-generator">
-      <h2>
-        Generate Sentence
-      </h2>
-      
-      <div class="form-row">
-        <div class="form-group-select">
-          <label for="templateSelect">Template</label>
-          <select id="templateSelect"></select>
+      <div class="formInputs">
+        <div class="form-row">
+          <div class="form-group-select">
+            <label for="templateSelect">Template</label>
+            <select id="templateSelect"></select>
+          </div>
+        
+          <div class="form-group-input">
+            <label for="sentenceCount">Iterations</label>
+            <input type="number" id="sentenceCount" placeholder="10 or Fewer" min="1" max="5">
+          </div>
         </div>
-      
-        <div class="form-group-input">
-          <label for="sentenceCount">Count</label>
-          <input type="number" id="sentenceCount" placeholder="1" min="1">
-        </div>
+        
+        <textarea id="templateEditor" class="templateArea" rows="4" placeholder="Type a template with {table_name}…">
+
+        </textarea>
       </div>
-      
-      <textarea id="templateEditor" rows="4" placeholder="Type a template with {table_name}…"></textarea>
 
       <div class="button-container" id="genContainer">
         <button id="generateBtn" class="magic-button">
@@ -55,8 +55,6 @@
     </div>
 
     <div class="section tab-content" id="tab-roller">
-      <h2>Roll from Specific Table</h2>
-      
       <div class="form-row">
         <div class="form-group-select">
           <label for="tableName">Table Name</label>
@@ -64,8 +62,8 @@
         </div>
 
         <div class="form-group-input">
-          <label for="tableCount">Count</label>
-          <input type="number" id="tableCount" placeholder="1" min="1">
+          <label for="tableCount">Iterations</label>
+          <input type="number" id="tableCount" placeholder="10 or Fewer" min="1" max="5">
         </div>
       </div>
       

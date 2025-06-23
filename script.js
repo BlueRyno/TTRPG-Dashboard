@@ -371,8 +371,13 @@ async function renderTemplate(template) {
 //Generate the full sentence(s) from the template in the textarea.
 async function generateSentences() {
   const template = templateEditor.value;
-  const count = parseInt(sentenceCount.value) || 1;
+  let count = parseInt(sentenceCount.value) || 1;
   const results = [];
+
+  if (count > 10) {
+    count = 10;
+  }
+
   for (let i = 0; i < count; i++) {
     results.push(await renderTemplate(template));
   }
@@ -390,9 +395,14 @@ async function generateSentences() {
 //Generate one or more random results from the specific table selected.
 async function rollTable() {
   const tableName = tableNameSelect.value.trim();
-  const count = parseInt(tableCountInput.value) || 1;
+  let count = parseInt(tableCountInput.value) || 1;
   const table = await getTable(tableName);
   const results = [];
+
+  if (count > 10) {
+    count = 10;
+  }
+
   for (let i = 0; i < count; i++) {
     results.push(rollTableKey(table) || `Missing entry for ${tableName}`);
   }
@@ -657,7 +667,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 
 document.querySelector('[data-tab="roller"]').addEventListener('click', () => {
-  initFireflies(document.getElementById("rollContainer"), 15);
+  initFireflies(document.getElementById("rollContainer"), 35);
 })
 
 
@@ -665,5 +675,5 @@ document.querySelector('[data-tab="roller"]').addEventListener('click', () => {
 //functions to run on load
 loadTables();
 loadTemplates();
-initFireflies(document.getElementById("genContainer"), 25);
+initFireflies(document.getElementById("genContainer"), 50);
 
