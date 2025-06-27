@@ -1,7 +1,7 @@
 [
   {
     "title": "A basic town",
-    "template": "The town of {^town_name}, located in  {^place_adjective} {^biome}, is mostly populated by {race_plural}, who are ruled by the {^nation_type} of {^nation_name}."
+    "template": "The town of {^town_name}, located in  {^place_adj} {^biome}, is mostly populated by {race_plural}, who are ruled by the {^nation_type} of {^nation_name}. As you enter the town, you're greeted with the sound of {sound_good} and the smells of {!scent_good} and {!scent_good} fill your nose."
   },
   {
     "title": "Beware, traveller!",
