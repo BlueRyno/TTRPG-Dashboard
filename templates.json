@@ -1,18 +1,36 @@
 [
   {
     "title": "A basic town",
-    "template": "The town of {^town_name}, located in  {^place_adj} {^biome}, is mostly populated by {race_plural}, who are ruled by the {^nation_type} of {^nation_name}. As you enter the town, you're greeted with the sound of {sound_good} and the smells of {!scent_good} and {!scent_good} fill your nose."
+    "template": "The town of {^town_name}, located in the {^place_adj} {^biome}, is populated by [33d10] {!race_common_plural}, [25d8] {!race_common_plural}, [2d8] {!race_plural}, and [2d8] {!race_plural}. As you enter the town, you're greeted with the sound of {sound_good}. The smells of {!scent_good} and {!scent_good} fill your nose."
   },
+
+  {
+    "title": "Quick kingdom",
+    "template": "The {^nation_type} of {^nation_name}, is mostly populated by {race_common_plural}."
+  },
+
+  {
+    "title": "Tavern",
+    "template": "At {^tavern_name}, you can buy {!tavern_food} for [1d12] copper or {!tavern_food} for [1d8] copper. It's specialty drink is a {tavern_drink}, sold for [1d4] silver."
+  },
+
+  {
+    "title": "Quick quest",
+    "template": "A {!gender} {!race_singular} wants you to {quest_{@quest_type}}. Twist: {^quest_twist_{@quest_type}}!"
+  },
+
   {
     "title": "Beware, traveller!",
     "template": "In the {^nation_type} of {^nation_name}, travelers avoid the {^place_adjective} {^biome}, rumored to be cursed."
   },
+
+  {
+    "title": "Nameless Founder",
+    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior in the heart of the {^place_adj} {^biome}."
+  },
+
   {
     "title": "Founder",
-    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior in the heart of the {^place_adjective} {^biome}."
-  },
-  {
-    "title": "Founder 2",
-    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior named {^human_{gender}_name} in the heart of the {^place_adjective} {^biome}."
+    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior named {^name_human_{gender}} in the heart of the {^place_adj} {^biome}."
   }
 ]

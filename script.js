@@ -32,7 +32,7 @@ async function loadTables() {
 
   tableNames.forEach(name => {
     let option = document.createElement('option');
-    option.textContent = name;
+    option.textContent = name.replaceAll('_', ' ');
     option.value = name;
     tableNameSelect.appendChild(option);
   });

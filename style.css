@@ -23,6 +23,11 @@
 }
 
 
+/*
+html {
+  overflow-y: hidden;
+}
+*/
 
 body {
   margin: 0;
@@ -276,7 +281,7 @@ input:focus, select:focus, textarea:focus {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: auto;
+  width: 15px;
   height: 65px;
   aspect-ratio: 1 / 1; /* Approximate if unknown */
   background-image: url('assets/button_side.svg');
@@ -290,12 +295,12 @@ input:focus, select:focus, textarea:focus {
 
 /* Left */
 .magic-button::before {
-  left: -36px; /* fine-tune as needed */
+  left: -14px; /* fine-tune as needed */
 }
 
 /* Right (mirrored) */
 .magic-button::after {
-  right: -36px;
+  right: -14px;
   transform: translateY(-50%) scaleX(-1);
 }
 
