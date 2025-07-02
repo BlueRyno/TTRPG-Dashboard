@@ -1,12 +1,12 @@
 [
   {
     "title": "A basic town",
-    "template": "The town of {^town_name}, located in the {^place_adj} {^biome}, is populated by [33d10] {!race_plural}, [25d8] {!race_plural}, [2d8] {!race_plural}, and [2d8] {!race_plural}. As you enter the town, you're greeted with the sounds of {!sound_good} and {!sound_good}. The smells of {!scent_good} and {!scent_good} fill your nose."
+    "template": "The town of {^community_town_name}, located in the {^biome_adjective} {^biome_type}, is populated by [33d10] {!race_plural}, [25d8] {!race_plural}, [2d8] {!race_plural}, and [2d8] {!race_plural}. As you enter the town, you're greeted with the sounds of {!biome_urban_sound} and {!biome_urban_sound}. The smells of {!biome_urban_scent} and {!biome_urban_scent} fill your nose."
   },
 
   {
     "title": "Quick kingdom",
-    "template": "The {^nation_type} of {^nation_name}, is mostly populated by {race_common_plural}."
+    "template": "The {^nation_type} of {^nation_name}, is mostly populated by {race_plural}."
   },
 
   {
@@ -16,21 +16,21 @@
 
   {
     "title": "Quick quest",
-    "template": "A {!gender} {!race_singular} wants you to {quest_{@quest_type}}. Twist: {^quest_twist_{@quest_type}}!"
+    "template": "A {!gender} {!race_singular} wants you to {quest_{@quest_type}}. Complication: {^quest_complication_{@quest_type}}!"
   },
 
   {
     "title": "Beware, traveller!",
-    "template": "In the {^nation_type} of {^nation_name}, travelers avoid the {^place_adjective} {^biome}, rumored to be cursed."
+    "template": "In the {^nation_type} of {^nation_name}, travelers avoid the {^biome_name} {^biome_type}, rumored to be cursed."
   },
 
   {
     "title": "Nameless Founder",
-    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior in the heart of the {^place_adj} {^biome}."
+    "template": "Legends say {community_town_name} was founded by a lone {race_singular} warrior in the heart of the {^biome_adjective} {^biome_type}."
   },
 
   {
     "title": "Founder",
-    "template": "Legends say {town_name} was founded by a lone {race_singular} warrior named {^name_human_{gender}} in the heart of the {^place_adj} {^biome}."
+    "template": "Legends say {community_town_name} was founded by a lone {race_singular} warrior named {^name_human_{gender}} in the heart of the {^biome_adjective} {^biome}."
   }
 ]

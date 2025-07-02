@@ -67,9 +67,11 @@ async function loadTemplates() {
 async function getTable(tableName) {
   if (!tableCache[tableName]) {
     console.log(tableCache[tableName], tableName);
+
+    const filePath = tableName.split('_').join('/');
     
     try {
-      const res = await fetch(`./tables/${tableName}.json`);
+      const res = await fetch(`./tables/${filePath}.json`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       tableCache[tableName] = data;
