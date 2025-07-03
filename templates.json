@@ -1,7 +1,7 @@
 [
   {
     "title": "A basic town",
-    "template": "The town of {^community_town_name}, located in the {^biome_adjective} {^biome_type}, is populated by [33d10] {!race_plural}, [25d8] {!race_plural}, [2d8] {!race_plural}, and [2d8] {!race_plural}. As you enter the town, you're greeted with the sounds of {!biome_urban_sound} and {!biome_urban_sound}. The smells of {!biome_urban_scent} and {!biome_urban_scent} fill your nose."
+    "template": "The town of {^community_town_name}, located in the {^biome_adjective} {^biome_type}, is populated by [15d20] {!race_plural_weighted}, [10d20] {!race_plural_weighted}, [2d8] {!race_plural_weighted}, and [3d4] {!race_plural_weighted}. As you enter the town, you're greeted with the sound of {!biome_urban_sound} and {!biome_urban_sound}. The smells of {!biome_urban_scent} and {!biome_urban_scent} fill your nose."
   },
 
   {
